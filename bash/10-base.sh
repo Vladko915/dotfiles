@@ -1,0 +1,44 @@
+
+alias sudo='sudo '
+
+alias cc="clear"
+alias ll="ls -lih"
+alias wl="wc -l"
+alias wm="wc -m"
+alias tt='sl; sl --help; sl -a; sl -l; sl -F'
+alias trcomma="tr -s ',' '\n'"
+alias trvg="tr -s '\n' ' '"
+#trim for 1 word
+alias trim="sed 's/^[ \t]*//;s/[ \t]*$//'"
+#trims for all words in string
+alias trims="awk '{\$1=\$1;print}'"
+alias trd="tr -d ' '"
+alias lsa="ls -a"
+alias lr="ls -R"
+alias ls1="ls -1"
+alias lsd="ls -d */"
+alias es1='echo -e "\n"'
+alias dash1='echo -e "------------------"'
+alias acs='apt-cache search '
+
+alias ttt="echo $TERM"
+alias sep="echo -e '\n-----\n'"
+
+if command -v mcedit >/dev/null 2>&1; then
+    alias bashrc="mcedit ~/.bashrc"
+fi
+
+
+#use as 'dash' OR 'dash 20'
+dash() {
+    printf '%*s\n' "${1:-18}" '' | tr ' ' '-'
+}
+
+curtime()
+{
+t11=$(date +%s);
+echo $t11;
+}
+
+
+
