@@ -1,0 +1,12 @@
+---
+- hosts: kubernetes
+  become: true
+  tasks:
+    - name: Install packages
+      apt:
+        name:
+          - mc
+          - htop
+          - git
+        state: present
+        update_cache: yes
