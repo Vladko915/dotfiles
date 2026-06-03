@@ -1,0 +1,174 @@
+
+# =====00-version.sh=====
+ALIAS_PACK_VERSION='0.1';
+
+alias galiaspv='echo $ALIAS_PACK_VERSION';
+
+
+# =====01-env.sh=====
+if command -v mcedit >/dev/null 2>&1; then
+    export EDITOR=mcedit
+fi
+
+export PATH="$HOME/bin:$PATH"
+# =====10-base.sh=====
+
+alias sudo='sudo '
+
+alias cc="clear"
+alias ll="ls -lih"
+alias wl="wc -l"
+alias wm="wc -m"
+alias tt='sl; sl --help; sl -a; sl -l; sl -F'
+alias trcomma="tr -s ',' '\n'"
+alias trvg="tr -s '\n' ' '"
+#trim for 1 word
+alias trim="sed 's/^[ \t]*//;s/[ \t]*$//'"
+#trims for all words in string
+alias trims="awk '{\$1=\$1;print}'"
+alias trd="tr -d ' '"
+alias lsa="ls -a"
+alias lr="ls -R"
+alias ls1="ls -1"
+alias lsd="ls -d */"
+alias es1='echo -e "\n"'
+alias dash1='echo -e "------------------"'
+alias acs='apt-cache search '
+
+alias ttt="echo $TERM"
+alias sep="echo -e '\n-----\n'"
+
+if command -v mcedit >/dev/null 2>&1; then
+    alias bashrc="mcedit ~/.bashrc"
+fi
+
+
+#use as 'dash' OR 'dash 20'
+dash() {
+    printf '%*s\n' "${1:-18}" '' | tr ' ' '-'
+}
+
+curtime()
+{
+t11=$(date +%s);
+echo $t11;
+}
+
+
+
+
+# =====20-network.sh=====
+
+alias psg="ps aux | grep"
+alias myip="curl ifconfig.me"
+alias ports="ss -tulpn"
+alias pingg="ping google.com"
+
+alias jl="journalctl"
+alias jl10="journalctl -n 10"
+# =====30-git.sh=====
+#git
+if command -v git >/dev/null 2>&1; then
+
+    alias gis="git status"
+    alias gil="git log"
+    alias gid="git diff"
+    alias gids="git diff --staged"
+    alias gidc="git diff --cached"
+    alias gil1p="git log --pretty=oneline"
+    alias gil1p5="git log --pretty=oneline -n 5"
+    alias gil1p10="git log --pretty=oneline -n 10"
+    alias gil1="git log --oneline"
+    alias gil1d="dash; git log --oneline --decorate"
+    alias gil1d1="dash; git log --oneline --decorate -n 1"
+    alias gil1d10="dash; git log --oneline --decorate -n 10"
+    alias gil1d5="dash; git log --oneline --decorate -n 5"
+    alias gilp1f="git log --pretty=oneline --follow"
+    alias gilf="git log --follow"
+    alias gib="dash; git branch"
+    alias gich="dash; git checkout"
+    alias gihead="dash; git diff HEAD~1"
+    alias gisl="dash; git stash list"
+    alias gip="dash; git push -u origin main"
+
+fi
+
+# =====40-docker.sh=====
+#docker
+if command -v docker >/dev/null 2>&1; then
+
+   alias doa="docker ps -a"
+   alias doi="docker images"
+
+   #functions
+   dor ()
+   {
+      docker stop "$1" && docker rm "$1" && docker rmi "$1"
+   }
+
+fi
+
+
+# =====50-kubectl.sh=====
+#kubectl
+if command -v kubectl >/dev/null 2>&1; then
+
+  alias kgp="kubectl get pods"
+  alias kgd="kubectl get deployments"
+  alias kgs="kubectl get services"
+
+  ksd ()
+  {
+    kubectl scale deployments "$1" --replicas="$2"
+  }
+
+fi
+
+# =====55-ansible.sh=====
+if command -v ansible >/dev/null 2>&1; then
+    arun() {
+        ansible -i ~/hosts.ini kubernetes -m command -a "$1" | awk '/CHANGED/{print "----------"}1'
+    }
+fi
+
+#WARNING
+if command -v ansible >/dev/null 2>&1; then
+    arunsh() {
+        ansible -i ~/hosts.ini kubernetes -m shell -a "$1" | awk '/CHANGED/{print "--------------------"}1'
+    }
+fi
+
+# =====60-terraform.sh=====
+#terraform
+# =====70-secure.sh=====
+#ssh
+
+#idempotent call
+if command -v ssh-agent >/dev/null 2>&1 && command -v ssh-add >/dev/null 2>&1; then
+    alias inkey='
+        if ! ssh-add -l >/dev/null 2>&1; then
+            eval $(ssh-agent -s)
+            ssh-add ~/.ssh/id_ed25519
+            echo "SSH key successfully loaded"
+        else
+            echo "SSH key already active"
+        fi
+    '
+fi
+
+if command -v snyk >/dev/null 2>&1; then
+
+    alias snk="snyk test"
+
+fi
+
+
+
+
+
+# =====80-aws.sh=====
+#aws
+# =====90-prompt.sh=====
+#prompt
+# =====99-local.sh=====
+#local/.gitignore
