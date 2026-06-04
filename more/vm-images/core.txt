@@ -1,0 +1,64 @@
+#1 Check all
+
+{
+    tmpSeparate() { echo -e "\n-----\n"; }
+
+    tmpSeparate
+    hostname
+    tmpSeparate
+    hostname -I
+    tmpSeparate
+    ping -c 3 8.8.8.8
+    tmpSeparate
+    sudo --version
+    tmpSeparate
+    timedatectl
+    tmpSeparate
+    hostnamectl
+    tmpSeparate
+    ip a
+    tmpSeparate
+    lsblk
+    tmpSeparate
+    df -h
+    tmpSeparate
+    locale
+    tmpSeparate
+    unset -f tmpSeparate
+} | less -R
+
+#2. check 2
+    sudo getent group sudo \
+    && echo -e "\n-----\n" \
+    groups user \
+    && echo -e "\n-----\n" \
+    && sudo -l
+
+#3. Option //set new host-name as "newname"
+
+tmpNewHostName="newname" \
+&& sudo hostnamectl set-hostname "$tmpNewHostName" \
+&& sudo sed -i "s/^127\.0\.1\.1.*/127.0.1.1 $tmpNewHostName/" /etc/hosts \
+&& unset tmpNewHostName \
+&& hostname && cat /etc/hosts | grep '127.0.1.1'
+
+#4
+
+ansible-playbook -i hosts.ini playbook_aliases.yml --ask-vault-pass
+
+#5
+sudo apt-get update \
+&& sudo apt-get upgrade -y \
+&& sudo apt-get install -y mc htop apt-transport-https \
+ca-certificates curl gpg conntrack git \
+&& sudo apt-get remove -y sudo-rs \
+&& apt list --upgradable \
+&& sudo apt autoremove -y \
+&& sudo timedatectl set-timezone Europe/Kyiv \
+&& sudo timedatectl set-ntp true \
+&& sudo journalctl --rotate \
+&& sudo journalctl --vacuum-time=1s \
+&& sudo truncate -s 0 /etc/machine-id \
+&& sudo rm -f /var/lib/dbus/machine-id \
+&& sudo rm -f /etc/ssh/ssh_host_*
+

@@ -1,0 +1,8 @@
+#1. Generate SSH keys on the first boot of the clone,
+# and cleare journal.
+
+sudo systemd-machine-id-setup \
+&& sudo ssh-keygen -A \
+&& sudo systemctl restart ssh \
+&& sudo journalctl --rotate \
+&& sudo journalctl --vacuum-time=1s
