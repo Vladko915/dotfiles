@@ -1,6 +1,7 @@
 
+
 # =====00-version.sh=====
-ALIAS_PACK_VERSION='0.1';
+ALIAS_PACK_VERSION='0.2';
 
 alias galiaspv='echo $ALIAS_PACK_VERSION';
 
@@ -52,6 +53,21 @@ curtime()
 {
 t11=$(date +%s);
 echo $t11;
+}
+
+hostnameedit() {
+    local tmpNewHostName="$1"
+
+    if [ -z "$tmpNewHostName" ]; then
+		echo "Error: please enter a new hostname"
+		echo "Usage: hostnameedit newname"
+        return 1
+    fi
+
+    sudo hostnamectl set-hostname "$tmpNewHostName" \
+    && sudo sed -i "s/^127\.0\.1\.1.*/127.0.1.1 $tmpNewHostName/" /etc/hosts \
+    && echo -e "hostname = $(hostname)" \
+    && echo -e "/etc/hosts = '$(cat /etc/hosts | grep 127.0.1.1)'"
 }
 
 
