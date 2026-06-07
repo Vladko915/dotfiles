@@ -23,3 +23,6 @@ ssh-keygen -R 192.168.0.100 //remove old host-keys of client
 
 
 ansible-vault edit group_vars/core/vault.yml
+ansible-vault edit group_vars/core/sudo_pass.yml
+
+x
