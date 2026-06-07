@@ -2,6 +2,7 @@
 - hosts: core
   become: true
   gather_facts: false
+  #serial: 1
   tasks:
     - name: apt-get update
       apt:
@@ -24,11 +25,6 @@
           - git
         state: present
 
-    - name: Remove sudo-rs
-      apt:
-        name: sudo-rs
-        state: absent
-
     - name: Check upgradable packages
       command: apt list --upgradable
       register: upgradable
@@ -41,13 +37,6 @@
     - name: apt autoremove
       apt:
         autoremove: yes
-
-    - name: Set timezone to Europe/Kyiv
-      timezone:
-        name: Europe/Kyiv
-
-    - name: Enable NTP sync
-      command: timedatectl set-ntp true
 
     - name: Rotate journal logs
       command: journalctl --rotate

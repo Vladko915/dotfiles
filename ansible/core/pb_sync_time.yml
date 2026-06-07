@@ -1,0 +1,40 @@
+---
+- hosts: core
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Set timezone to Europe/Kyiv
+      timezone:
+        name: Europe/Kyiv
+
+    - name: Enable NTP sync
+      command: timedatectl set-ntp true
+
+    - name: Sync time via HTTP
+      shell: "date -s \"$(curl -s --head http://google.com | grep '^Date:' | sed 's/Date: //g')\""
+      changed_when: false
+      failed_when: false
+
+    - name: Sync RTC to system time
+      command: hwclock --systohc
+      changed_when: false
+
+    - name: Install chrony
+      apt:
+        name: chrony
+        state: present
+        update_cache: yes
+
+    - name: Force time sync now
+      shell: chronyc makestep
+      changed_when: false
+
+    - name: Show current time
+      command: timedatectl
+      register: time_result
+      changed_when: false
+
+    - name: Show time result
+      debug:
+        msg: "{{ time_result.stdout }}"

@@ -1,0 +1,27 @@
+---
+- name: Remove sudo-rs
+  import_playbook: pb_remove_sudors.yml
+
+- name: Time synchronization
+  import_playbook: pb_sync_time.yml
+
+- name: Edit hostname
+  import_playbook: pb_edit_hostname.yml
+
+- name: Copy bash aliases
+  import_playbook: pb_copy_bash_aliases.yml
+
+#- name: Info all
+#  import_playbook: pb_infoall.yml
+
+#- name: Sudo group
+#  import_playbook: pb_sudo_group.yml
+
+- name: Copy SSH keygen service
+  import_playbook: pb_copy_ssh_keygen_service.yml
+
+- name: Prepare system
+  import_playbook: pb_prepare_system.yml
+
+- name: Poweroff
+  import_playbook: pb_poweroff.yml
