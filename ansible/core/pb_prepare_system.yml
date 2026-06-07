@@ -1,0 +1,67 @@
+---
+- hosts: core
+  become: true
+  gather_facts: false
+  tasks:
+    - name: apt-get update
+      apt:
+        update_cache: yes
+
+    - name: apt-get upgrade
+      apt:
+        upgrade: full
+
+    - name: Install required packages
+      apt:
+        name:
+          - mc
+          - htop
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gpg
+          - conntrack
+          - git
+        state: present
+
+    - name: Remove sudo-rs
+      apt:
+        name: sudo-rs
+        state: absent
+
+    - name: Check upgradable packages
+      command: apt list --upgradable
+      register: upgradable
+      failed_when: false
+
+    - name: Show upgradable packages
+      debug:
+        msg: "{{ upgradable.stdout }}"
+
+    - name: apt autoremove
+      apt:
+        autoremove: yes
+
+    - name: Set timezone to Europe/Kyiv
+      timezone:
+        name: Europe/Kyiv
+
+    - name: Enable NTP sync
+      command: timedatectl set-ntp true
+
+    - name: Rotate journal logs
+      command: journalctl --rotate
+
+    - name: Vacuum journal logs (keep last 1s)
+      command: journalctl --vacuum-time=1s
+
+    - name: Clear machine-id
+      command: truncate -s 0 /etc/machine-id
+
+    - name: Remove dbus machine-id
+      file:
+        path: /var/lib/dbus/machine-id
+        state: absent
+
+    - name: Remove SSH host keys
+      shell: rm -f /etc/ssh/ssh_host_*

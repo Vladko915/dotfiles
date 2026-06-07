@@ -1,0 +1,29 @@
+---
+- hosts: core
+  become: true
+  tasks:
+    - name: Copy ssh-keygen-firstboot.service to remote machine
+      copy:
+        src: ssh-keygen-firstboot.service
+        dest: /etc/systemd/system/ssh-keygen-firstboot.service
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: true
+
+    - name: Enable ssh-keygen-firstboot service
+      systemd:
+        name: ssh-keygen-firstboot
+        enabled: true
+
+    - name: Check service status
+      command: systemctl status ssh-keygen-firstboot
+      register: service_status
+      failed_when: false
+
+    - name: Show service status
+      debug:
+        msg: "{{ service_status.stdout }}"

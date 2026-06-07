@@ -1,0 +1,11 @@
+---
+- hosts: core
+  tasks:
+    - name: Run infoall
+      shell: bash -i -c 'infoall'
+      register: result
+      failed_when: false
+
+    - name: Show infoall result
+      debug:
+        msg: "{{ result.stdout }}"

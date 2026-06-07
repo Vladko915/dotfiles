@@ -1,0 +1,13 @@
+---
+- hosts: core
+  tasks:
+    - name: Remove sudo-rs
+      shell: sudo apt-get remove -y sudo-rs
+      args:
+        executable: /bin/bash
+      register: result
+      failed_when: false
+
+    - name: Show result
+      debug:
+        msg: "{{ result.stdout }}"

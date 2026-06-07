@@ -1,0 +1,32 @@
+---
+- hosts: core
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Check sudo group members
+      command: getent group sudo
+      register: result_getent
+
+    - name: Check user groups
+      command: groups user
+      register: result_groups
+
+    - name: Check sudo privileges
+      command: sudo -l
+      register: result_sudol
+
+    - name: Show results
+      debug:
+        msg: |
+          === getent group sudo ===
+          {{ result_getent.stdout }}
+
+          -----
+
+          === groups user ===
+          {{ result_groups.stdout }}
+
+          -----
+
+          === sudo -l ===
+          {{ result_sudol.stdout }}

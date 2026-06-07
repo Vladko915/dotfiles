@@ -1,0 +1,30 @@
+---
+- name: Deploy .bash_aliases to Kubernetes nodes
+  hosts: core
+  gather_facts: false
+
+  tasks:
+    - name: Copy .bash_aliases to remote hosts
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../.bash_aliases"
+        dest: /home/user/.bash_aliases
+        owner: user
+        group: user
+        mode: '0644'
+
+    - name: Source .bashrc on remote hosts
+      ansible.builtin.shell:
+        cmd: bash -i -c 'source ~/.bashrc'
+      args:
+        executable: /bin/bash
+
+    - name: Run galiaspv command
+      ansible.builtin.shell:
+        cmd: bash -i -c 'source ~/.bashrc && galiaspv'
+      args:
+        executable: /bin/bash
+      register: galiaspv_output
+
+    - name: Show galiaspv output
+      ansible.builtin.debug:
+        msg: "[{{ inventory_hostname }}] {{ galiaspv_output.stdout }}"
