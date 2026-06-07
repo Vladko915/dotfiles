@@ -1,1 +1,2 @@
 ./bash/99-local.sh
+./ansible/group_vars/core/vault.yml
