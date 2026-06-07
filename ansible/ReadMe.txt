@@ -6,7 +6,7 @@ folders:
 -kube-control
 -kube-worker
 
-#steps:
+#steps - 1:
 ansible-playbook -i core/core.ini core/pb_remove_sudors.yml --ask-vault-pass
 ansible-playbook -i core/core.ini core/pb_sync_time.yml --ask-vault-pass --ask-become-pass
 ansible-playbook -i core/core.ini core/pb_edit_hostname.yml --ask-vault-pass --ask-become-pass
@@ -21,10 +21,14 @@ OR
 
 ansible-playbook -i core/core.ini core/pb_main.yml --ask-vault-pass --ask-become-pass
 
+-----------------------------------------------------------------------------------------
 
-Experimental:
+#steps - 2:
 
-ansible-playbook -i core/core.ini core/pb_edit_hostname.yml --ask-vault-pass  --ask-become-pass
+ansible-playbook -i kube-core/kube-core.ini kube-core/pb_generate_ssh.yml --ask-vault-pass --ask-become-pass
 
+OR
+
+ansible-playbook -i kube-core/kube-core.ini kube-core/pb_main.yml --ask-vault-pass --ask-become-pass
 
 

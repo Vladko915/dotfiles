@@ -1,6 +1,6 @@
 ---
-#- name: Remove sudo-rs
-#  import_playbook: pb_remove_sudors.yml
+- name: Generate SSH, machine-id, clear journal
+  import_playbook: pb_generate_ssh.yml
 
 #- name: Time synchronization
 #  import_playbook: pb_sync_time.yml
