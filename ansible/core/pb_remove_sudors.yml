@@ -5,7 +5,7 @@
   vars:
     ansible_ssh_extra_args: '-o ConnectTimeout=5 -o ConnectionAttempts=1 -t'
   vars_files:
-    - "../group_vars/core/sudo_pass.yml"
+    - "../group_vars/core/vault.yml"
 
   tasks:
     - name: Remove sudo-rs

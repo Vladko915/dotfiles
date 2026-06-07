@@ -8,7 +8,7 @@ folders:
 
 #steps:
 ansible-playbook -i core/core.ini core/pb_copy_bash_aliases.yml --ask-vault-pass
-ansible-playbook -i core/core.ini core/pb_remove_sudors.yml --ask-vault-pass  --ask-become-pass
+ansible-playbook -i core/core.ini core/pb_remove_sudors.yml --ask-vault-pass
 ansible-playbook -i core/core.ini core/pb_infoall.yml --ask-vault-pass
 ansible-playbook -i core/core.ini core/pb_sudo_group.yml --ask-vault-pass --ask-become-pass
 ansible-playbook -i core/core.ini core/pb_copy_ssh_keygen_service.yml --ask-vault-pass --ask-become-pass
