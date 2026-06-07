@@ -31,10 +31,10 @@
 #1.2
 
 copy /etc/systemd/system/ssh-keygen-firstboot.service
-# enable service
+# увімкнути сервіс
 sudo systemctl enable ssh-keygen-firstboot
 
-# check status of service
+# перевірити що файл правильний
 sudo systemctl status ssh-keygen-firstboot
 
 

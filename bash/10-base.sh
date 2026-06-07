@@ -55,5 +55,33 @@ hostnameedit() {
     && echo -e "/etc/hosts = '$(cat /etc/hosts | grep 127.0.1.1)'"
 }
 
+infoall()
+{
+    tmpSeparate() { echo -e "\n-----\n"; }
+
+    tmpSeparate
+    hostname
+    tmpSeparate
+    hostname -I
+    tmpSeparate
+    ping -c 3 8.8.8.8
+    tmpSeparate
+    sudo --version
+    tmpSeparate
+    timedatectl
+    tmpSeparate
+    hostnamectl
+    tmpSeparate
+    ip a
+    tmpSeparate
+    lsblk
+    tmpSeparate
+    df -h
+    tmpSeparate
+    locale
+    tmpSeparate
+    unset -f tmpSeparate
+}
+
 
 
