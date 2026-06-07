@@ -1,13 +1,19 @@
 ---
 - hosts: core
+  become: false
+  gather_facts: false
+  vars:
+    ansible_ssh_extra_args: '-o ConnectTimeout=5 -o ConnectionAttempts=1 -t'
+  vars_files:
+    - "../group_vars/core/sudo_pass.yml"
+
   tasks:
     - name: Remove sudo-rs
-      shell: sudo apt-get remove -y sudo-rs
-      args:
-        executable: /bin/bash
+      ansible.builtin.shell: echo "{{ sudo_pass }}" | sudo-rs -S apt-get remove -y sudo-rs
       register: result
       failed_when: false
+      no_log: true
 
     - name: Show result
-      debug:
-        msg: "{{ result.stdout }}"
+      ansible.builtin.debug:
+        msg: "{{ 'sudo-rs removed' if result.changed else 'sudo-rs was not installed' }}"
