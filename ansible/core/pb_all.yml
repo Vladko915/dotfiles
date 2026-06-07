@@ -1,9 +1,0 @@
-
-# playbook_all.yml
----
-- import_playbook: pb_copy_bash_aliases.yml
-- import_playbook: pb_infoall.yml
-- import_playbook: pb_copy_ssh_keygen_service.yml
-- import_playbook: pb_sudo_group.yml
-- import_playbook: pb_prepare_system.yml
-- import_playbook: pb_poweroff.yml
