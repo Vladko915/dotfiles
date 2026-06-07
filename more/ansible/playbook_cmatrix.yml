@@ -1,9 +1,0 @@
----
-- hosts: kubernetes
-  become: true
-  tasks:
-    - name: Install cmatrix
-      apt:
-        name: cmatrix
-        state: present
-        update_cache: yes
