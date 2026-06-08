@@ -1,0 +1,85 @@
+- name: Init Kubernetes master (kubeadm)
+  hosts: core
+  become: true
+  gather_facts: false
+  # виконується тільки на master-вузлах з групи [core]
+
+  vars:
+    pod_network_cidr: "10.244.0.0/16"
+    flannel_manifest: "https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml"
+    metrics_server_manifest: "https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml"
+    kubeconfig_dir: "/home/{{ ansible_user }}/.kube"
+
+  tasks:
+
+    # ── 1. kubeadm init ────────────────────────────────────────────────────────
+
+    - name: Run kubeadm init
+      ansible.builtin.command: >
+        kubeadm init --pod-network-cidr={{ pod_network_cidr }}
+      args:
+        creates: /etc/kubernetes/admin.conf   # ідемпотентність — пропускає якщо вже ініціалізовано
+      register: kubeadm_init_result
+
+    - name: Show kubeadm init output
+      ansible.builtin.debug:
+        var: kubeadm_init_result.stdout_lines
+      when: kubeadm_init_result.changed
+
+    # ── 2. Налаштування kubectl для звичайного користувача ─────────────────────
+
+    - name: Create .kube directory
+      ansible.builtin.file:
+        path: "{{ kubeconfig_dir }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0755"
+
+    - name: Copy admin.conf to user .kube/config
+      ansible.builtin.copy:
+        src: /etc/kubernetes/admin.conf
+        dest: "{{ kubeconfig_dir }}/config"
+        remote_src: true
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0600"
+
+    # ── 3. Мережевий плагін Flannel ────────────────────────────────────────────
+
+    - name: Apply Flannel CNI manifest
+      ansible.builtin.command: >
+        kubectl apply -f {{ flannel_manifest }}
+      environment:
+        KUBECONFIG: "{{ kubeconfig_dir }}/config"
+      register: flannel_result
+      changed_when: "'created' in flannel_result.stdout or 'configured' in flannel_result.stdout"
+
+    - name: Show Flannel apply output
+      ansible.builtin.debug:
+        var: flannel_result.stdout_lines
+
+    # ── 4. Metrics Server ──────────────────────────────────────────────────────
+
+    - name: Apply metrics-server manifest
+      ansible.builtin.command: >
+        kubectl apply -f {{ metrics_server_manifest }}
+      environment:
+        KUBECONFIG: "{{ kubeconfig_dir }}/config"
+      register: metrics_result
+      changed_when: "'created' in metrics_result.stdout or 'configured' in metrics_result.stdout"
+
+    - name: Show metrics-server apply output
+      ansible.builtin.debug:
+        var: metrics_result.stdout_lines
+
+    # ── 5. Підсумок ────────────────────────────────────────────────────────────
+
+    - name: Show join command for worker nodes
+      ansible.builtin.command: kubeadm token create --print-join-command
+      register: join_command
+      changed_when: false
+
+    - name: Print join command
+      ansible.builtin.debug:
+        msg: "{{ join_command.stdout }}"

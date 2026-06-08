@@ -1,0 +1,14 @@
+---
+- name: Edit hostname
+  import_playbook: pb_edit_hostname.yml
+
+- name: Ping web
+  import_playbook: pb_ping_web.yml
+
+#
+
+# - name: Clear SSH, machine_id, logs
+#   import_playbook: pb_clear_ssh_machineid_logs.yml
+
+# - name: Poweroff
+#   import_playbook: pb_poweroff.yml

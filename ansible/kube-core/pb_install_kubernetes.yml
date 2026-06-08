@@ -1,0 +1,43 @@
+---
+- hosts: core
+  become: true
+  gather_facts: false
+
+  tasks:
+    - name: Create keyrings directory
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Add Kubernetes GPG key
+      ansible.builtin.shell: curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      args:
+        creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+    - name: Add Kubernetes repository
+      ansible.builtin.shell: echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /' | tee /etc/apt/sources.list.d/kubernetes.list
+      args:
+        creates: /etc/apt/sources.list.d/kubernetes.list
+
+    - name: apt-get update
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Install kubelet kubeadm kubectl
+      ansible.builtin.apt:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: present
+
+    - name: Hold kubelet kubeadm kubectl
+      ansible.builtin.shell: apt-mark hold kubelet kubeadm kubectl
+      changed_when: false
+
+    - name: Enable and start kubelet
+      ansible.builtin.service:
+        name: kubelet
+        enabled: yes
+        state: started
