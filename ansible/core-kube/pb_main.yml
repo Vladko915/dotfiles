@@ -1,0 +1,8 @@
+---
+- name: Edit hostname
+  import_playbook: pb_edit_hostname.yml
+#- name: Generate SSH, machine-id, clear journal
+#  import_playbook: pb_generate_ssh.yml
+
+#- name: Time synchronization
+#  import_playbook: pb_sync_time.yml
