@@ -5,6 +5,11 @@
 - name: Ping web
   import_playbook: pb_ping_web.yml
 
+- name: Disable swap
+  import_playbook: pb_disable_swap.yml
+
+
+
 
 #- name: Clear SSH, machine_id, logs
 #  import_playbook: pb_clear_ssh_machineid_logs.yml

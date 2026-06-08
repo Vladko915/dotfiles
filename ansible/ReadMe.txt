@@ -26,6 +26,13 @@ ansible-playbook -i core/core.ini core/pb_main.yml --ask-vault-pass --ask-become
 #steps - 2:
 
 ansible-playbook -i core-kube/core-kube.ini core-kube/pb_edit_hostname.yml --ask-vault-pass --ask-become-pass
+ansible-playbook -i core/core.ini core/pb_ping_web.yml --ask-vault-pass --ask-become-pass
+ansible-playbook -i core/core.ini core/pb_disable_swap.yml --ask-vault-pass --ask-become-pass
+
+ansible-playbook -i core/core.ini core/pb_clear_ssh_machineid_logs.yml --ask-vault-pass --ask-become-pass
+ansible-playbook -i core/core.ini core/pb_poweroff.yml --ask-vault-pass  --ask-become-pass
+
+
 
 OR
 
