@@ -1,9 +1,0 @@
----
-- hosts: core
-  become: true
-  tasks:
-    - name: Power off the remote machine
-      command: poweroff
-      async: 1
-      poll: 0
-      ignore_errors: true
