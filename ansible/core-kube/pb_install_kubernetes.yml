@@ -35,3 +35,9 @@
     - name: Hold kubelet kubeadm kubectl
       ansible.builtin.shell: apt-mark hold kubelet kubeadm kubectl
       changed_when: false
+
+    - name: Enable and start kubelet
+      ansible.builtin.service:
+        name: kubelet
+        enabled: yes
+        state: started
