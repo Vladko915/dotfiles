@@ -33,6 +33,10 @@
       register: ip_after
       changed_when: false
 
+    - name: Update /etc/hosts
+      ansible.builtin.shell: sed -i 's/127.0.1.1 {{ hostname_before.stdout }}/127.0.1.1 {{ hostname_after.stdout }}/' /etc/hosts
+      changed_when: true
+
     - name: Show current hostname and IP (after)
       ansible.builtin.debug:
         msg: "updated-hostname: {{ hostname_after.stdout }}, {{ ip_after.stdout | trim }}"
