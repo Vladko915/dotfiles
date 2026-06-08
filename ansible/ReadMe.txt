@@ -25,10 +25,10 @@ ansible-playbook -i core/core.ini core/pb_main.yml --ask-vault-pass --ask-become
 
 #steps - 2:
 
-ansible-playbook -i kube-core/kube-core.ini kube-core/pb_generate_ssh.yml --ask-vault-pass --ask-become-pass
+ansible-playbook -i core-kube/core-kube.ini core-kube/pb_edit_hostname.yml --ask-vault-pass --ask-become-pass
 
 OR
 
-ansible-playbook -i kube-core/kube-core.ini kube-core/pb_main.yml --ask-vault-pass --ask-become-pass
+ansible-playbook -i core-kube/core-kube.ini core-kube/pb_main.yml --ask-vault-pass --ask-become-pass
 
 
