@@ -8,6 +8,16 @@
 - name: Disable swap
   import_playbook: pb_disable_swap.yml
 
+- name: ip_forward setup
+  import_playbook: pb_ip_forward_setup.yml
+
+- name: Install containerd
+  import_playbook: pb_install_containerd.yml
+
+- name: Install containerd
+  import_playbook: pb_install_kubernetes.yml
+
+
 
 
 
