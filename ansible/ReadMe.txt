@@ -41,7 +41,7 @@ ansible-playbook -i kube-core/kube-core.ini kube-core/pb_main.yml --ask-vault-pa
 ---------------------------------
 
 
-#steps - 3:
+#steps - 3(Control-Plane-Noda):
 
 ansible-playbook -i kube-control/kube-control.ini kube-control/pb_edit_hostname.yml --ask-vault-pass --ask-become-pass
 ansible-playbook -i kube-control/kube-control.ini kube-control/pb_ping_web.yml --ask-vault-pass --ask-become-pass
@@ -53,5 +53,20 @@ ansible-playbook -i kube-control/kube-control.ini kube-control/pb_kubeadm_init.y
 OR
 
 ansible-playbook -i kube-control/kube-control.ini kube-control/pb_main.yml --ask-vault-pass --ask-become-pass
+
+---------------------------------
+
+#steps - 4(Worker-Noda):
+
+ansible-playbook -i kube-worker/kube-worker.ini kube-worker/pb_edit_hostname.yml --ask-vault-pass --ask-become-pass
+ansible-playbook -i kube-worker/kube-worker.ini kube-worker/pb_ping_web.yml --ask-vault-pass --ask-become-pass
+ansible-playbook -i kube-worker/kube-worker.ini kube-worker/pb_worker_join.yml --ask-vault-pass --ask-become-pass
+
+#ansible-playbook -i kube-worker/kube-worker.ini kube-worker/pb_clear_ssh_machineid_logs.yml --ask-vault-pass --ask-become-pass
+#ansible-playbook -i kube-worker/kube-worker.ini kube-worker/pb_poweroff.yml --ask-vault-pass  --ask-become-pass
+
+OR
+
+ansible-playbook -i kube-worker/kube-worker.ini kube-worker/pb_main.yml --ask-vault-pass --ask-become-pass
 
 

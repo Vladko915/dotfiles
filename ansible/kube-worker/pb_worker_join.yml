@@ -1,0 +1,24 @@
+- name: Join worker to Kubernetes cluster
+  hosts: core
+  become: true
+  gather_facts: false
+
+  tasks:
+
+    - name: Check if node already joined
+      ansible.builtin.stat:
+        path: /etc/kubernetes/kubelet.conf
+      register: kubelet_conf
+
+    - name: kubeadm join
+      ansible.builtin.command: >
+        kubeadm join 192.168.0.119:6443
+        --token dukxut.dmwp69t4hc19p9ld
+        --discovery-token-ca-cert-hash sha256:89aa5b1c252fa619dead61aabed99322d55c1cd8f0d8af20f29fb14a5df63822
+      when: not kubelet_conf.stat.exists
+      register: join_result
+
+    - name: Show output
+      ansible.builtin.debug:
+        var: join_result.stdout_lines
+      when: join_result.changed

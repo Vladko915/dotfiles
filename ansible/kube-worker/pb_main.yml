@@ -5,6 +5,11 @@
 - name: Ping web
   import_playbook: pb_ping_web.yml
 
+- name: Join worker to kubenetes plane-node
+  import_playbook: pb_worker_join.yml
+
+
+
 #
 
 # - name: Clear SSH, machine_id, logs
