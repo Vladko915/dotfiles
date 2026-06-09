@@ -86,6 +86,7 @@ apis maintenance/all.ini maintenance/pb_reboot.yml
 Experimentals:
 
 for ip in {119,120,121}; do ssh user@192.168.0.$ip hostname; done
+for ip in {119,120,121}; do ssh user@192.168.0.$ip 'hostname && hostname -I && echo -e "\n"'; done
 
 //use alias
 user@pc:~/dotfiles/ansible$ ssh user@192.168.0.120 'bash -lc "
@@ -93,6 +94,6 @@ shopt -s expand_aliases
 source ~/.bash_aliases
 eval galiaspv
 "'
-//use function
+//use function from ~/.bash_aliases
 ssh user@192.168.0.120 "bash -lc 'source ~/.bash_aliases && curtime'"
 
