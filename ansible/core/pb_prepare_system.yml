@@ -23,6 +23,7 @@
           - gpg
           - conntrack
           - git
+          - tree
         state: present
 
     - name: Check upgradable packages
