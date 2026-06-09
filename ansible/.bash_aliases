@@ -110,6 +110,16 @@ alias pingg="ping google.com"
 
 alias jl="journalctl"
 alias jl10="journalctl -n 10"
+
+ghosts()
+{
+printf "%-20s %s\n" "HOST" "HOSTNAME"
+printf "%-20s %s\n" "----" "--------"
+awk '
+  /^Host / && !/\*/ { host=$2 }
+  /^[[:space:]]+HostName / { printf "%-20s %s\n", host, $2 }
+' ~/.ssh/config
+}
 # =====30-git.sh=====
 #git
 if command -v git >/dev/null 2>&1; then
@@ -165,6 +175,13 @@ if command -v kubectl >/dev/null 2>&1; then
   {
     kubectl scale deployments "$1" --replicas="$2"
   }
+
+fi
+
+#kubeadm
+if command -v kubeadm >/dev/null 2>&1; then
+
+  alias katoken="kubeadm token create --print-join-command"
 
 fi
 
