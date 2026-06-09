@@ -70,3 +70,29 @@ OR
 ansible-playbook -i kube-worker/kube-worker.ini kube-worker/pb_main.yml --ask-vault-pass --ask-become-pass
 
 
+---------------------------
+Maintenance:
+
+ansible-playbook -i maintenance/all.ini maintenance/pb_up_bash_aliases.yml --ask-vault-pass --ask-become-pass
+OR
+apis maintenance/all.ini maintenance/pb_up_bash_aliases.yml
+
+
+
+apis maintenance/all.ini maintenance/pb_reboot.yml
+
+
+
+Experimentals:
+
+for ip in {119,120,121}; do ssh user@192.168.0.$ip hostname; done
+
+//use alias
+user@pc:~/dotfiles/ansible$ ssh user@192.168.0.120 'bash -lc "
+shopt -s expand_aliases
+source ~/.bash_aliases
+eval galiaspv
+"'
+//use function
+ssh user@192.168.0.120 "bash -lc 'source ~/.bash_aliases && curtime'"
+

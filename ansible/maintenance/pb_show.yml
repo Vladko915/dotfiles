@@ -1,0 +1,17 @@
+---
+- name: Check memory
+  hosts: core
+  gather_facts: false
+
+  tasks:
+
+    - name: Run command
+      ansible.builtin.shell:
+        cmd: bash -i -c 'free -h'
+      args:
+        executable: /bin/bash
+      register: res
+
+    - name: Show output
+      ansible.builtin.debug:
+        msg: "{{ res.stdout }}"

@@ -1,0 +1,37 @@
+---
+- name: Check and update .bash_aliases to Kubernetes nodes
+  hosts: core
+  gather_facts: false
+
+  vars:
+    current_version: "0.3"
+
+  tasks:
+    - name: Run galiaspv command
+      ansible.builtin.shell:
+        cmd: bash -i -c 'galiaspv'
+      args:
+        executable: /bin/bash
+      register: galiaspv_output
+      check_mode: false
+
+    - name: Show galiaspv output
+      ansible.builtin.debug:
+        msg: "{{ item }}"
+      loop: "{{ ['[' + inventory_hostname + ']'] + galiaspv_output.stdout_lines }}"
+
+    - name: Copy .bash_aliases to remote hosts
+      ansible.builtin.copy:
+        src: "{{ playbook_dir }}/../.bash_aliases"
+        dest: /home/user/.bash_aliases
+        owner: user
+        group: user
+        mode: '0644'
+      when: galiaspv_output.stdout | trim is version(current_version, '<')
+
+    - name: Source .bashrc on remote hosts
+      ansible.builtin.shell:
+        cmd: bash -i -c 'source ~/.bashrc'
+      args:
+        executable: /bin/bash
+      when: galiaspv_output.stdout | trim is version(current_version, '<')
