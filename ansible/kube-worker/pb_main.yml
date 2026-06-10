@@ -1,4 +1,5 @@
 ---
+
 - name: Edit hostname
   import_playbook: pb_edit_hostname.yml
 
