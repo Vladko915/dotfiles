@@ -1,0 +1,42 @@
+---
+- name: Check and display netplan config on Kubernetes nodes
+  hosts: core
+  gather_facts: false
+
+  vars:
+    netplan_config: "/etc/netplan/00-installer-config.yaml"
+
+  tasks:
+    - name: Check if netplan config exists
+      ansible.builtin.stat:
+        path: "{{ netplan_config }}"
+      register: netplan_stat
+
+    - name: Notify if file does not exist
+      ansible.builtin.debug:
+        msg: "[{{ inventory_hostname }}] Файл {{ netplan_config }} не існує"
+      when: not netplan_stat.stat.exists
+
+    - name: Read netplan config
+      ansible.builtin.command:
+        cmd: cat {{ netplan_config }}
+      register: netplan_content
+      when: netplan_stat.stat.exists
+      become: true
+
+    - name: Show netplan config content
+      ansible.builtin.debug:
+        msg: "[{{ inventory_hostname }}]\n{{ netplan_content.stdout }}"
+      when: netplan_stat.stat.exists
+
+    - name: Check dhcp4 setting
+      ansible.builtin.shell:
+        cmd: cat {{ netplan_config }} | grep dhcp4
+      register: dhcp4_output
+      when: netplan_stat.stat.exists
+      become: true
+
+    - name: Show dhcp4 summary
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }}, {{ ansible_host }},{{ dhcp4_output.stdout }}"
+      when: netplan_stat.stat.exists
