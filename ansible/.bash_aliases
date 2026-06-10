@@ -1,7 +1,7 @@
 
 
 # =====00-version.sh=====
-ALIAS_PACK_VERSION='0.3';
+ALIAS_PACK_VERSION='0.4';
 
 alias galiaspv='echo $ALIAS_PACK_VERSION';
 
@@ -170,6 +170,7 @@ if command -v kubectl >/dev/null 2>&1; then
   alias kgp="kubectl get pods"
   alias kgd="kubectl get deployments"
   alias kgs="kubectl get services"
+  alias kgn="kubectl get nodes"
 
   ksd ()
   {
