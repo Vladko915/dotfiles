@@ -1,5 +1,5 @@
 ---
-- name: Check and display netplan config on Kubernetes nodes
+- name: Check and display netplan config on Kubernetes nodes of Ubuntu-servers
   hosts: core
   gather_facts: false
 
