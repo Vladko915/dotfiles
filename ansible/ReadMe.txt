@@ -88,6 +88,11 @@ Experimentals:
 for ip in {119,120,121}; do ssh user@192.168.0.$ip hostname; done
 for ip in {119,120,121}; do ssh user@192.168.0.$ip 'hostname && hostname -I && echo -e "\n"'; done
 
+
+for ip in {120,121}; do ssh user@192.168.0.$ip 'hostname && hostname -I && echo -e "\n"'; done
+
+for ip in {21,22}; do ssh user@192.168.0.$ip 'hostname && hostname -I && echo -e "\n"'; done
+
 //use alias
 user@pc:~/dotfiles/ansible$ ssh user@192.168.0.120 'bash -lc "
 shopt -s expand_aliases

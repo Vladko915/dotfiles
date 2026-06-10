@@ -25,4 +25,11 @@ ssh-keygen -R 192.168.0.100 //remove old host-keys of client
 ansible-vault edit group_vars/core/vault.yml
 ansible-vault edit group_vars/core/sudo_pass.yml
 
-x
+grep -r "hosts.ini" ~/dotfiles
+grep -r "kubernetes" ~/dotfiles
+
+If broken kube-control-plane-noda:
+1) sudo kubeadm reset -f
+2) generate new token from kube-control-plane-noda
+3) sudo kubeadm join 192.168.0.10:6443.....
+4) check: $HOME/.kube/config
