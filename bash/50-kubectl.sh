@@ -11,6 +11,11 @@ if command -v kubectl >/dev/null 2>&1; then
     kubectl get pods "$@"
   }
 
+  kgpw()
+  {
+    kubectl get pods -o wide "$@"
+  }
+
   kgd()
   {
     kubectl get deployments "$@"
@@ -24,6 +29,11 @@ if command -v kubectl >/dev/null 2>&1; then
   kgn()
   {
     kubectl get nodes "$@"
+  }
+
+  kgnw()
+  {
+    kubectl get nodes -o wide "$@"
   }
 
   kgns()

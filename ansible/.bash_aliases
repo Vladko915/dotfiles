@@ -1,7 +1,7 @@
 
 
 # =====00-version.sh=====
-ALIAS_PACK_VERSION='0.6';
+ALIAS_PACK_VERSION='0.7';
 
 alias galiaspv='echo $ALIAS_PACK_VERSION';
 
@@ -177,6 +177,11 @@ if command -v kubectl >/dev/null 2>&1; then
     kubectl get pods "$@"
   }
 
+  kgpw()
+  {
+    kubectl get pods -o wide "$@"
+  }
+
   kgd()
   {
     kubectl get deployments "$@"
@@ -190,6 +195,11 @@ if command -v kubectl >/dev/null 2>&1; then
   kgn()
   {
     kubectl get nodes "$@"
+  }
+
+  kgnw()
+  {
+    kubectl get nodes -o wide "$@"
   }
 
   kgns()
@@ -230,6 +240,14 @@ fi
 
 # =====60-terraform.sh=====
 #terraform
+
+if command -v terraform >/dev/null 2>&1; then
+    teri(){ terraform init; }
+    terp(){ terraform plan; }
+    tera(){ terraform apply; }
+    ters(){ terraform show; }
+    terd(){ terraform destroy; }
+fi
 # =====70-secure.sh=====
 #ssh
 
