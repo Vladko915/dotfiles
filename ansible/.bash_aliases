@@ -1,7 +1,7 @@
 
 
 # =====00-version.sh=====
-ALIAS_PACK_VERSION='0.7';
+ALIAS_PACK_VERSION='0.8';
 
 alias galiaspv='echo $ALIAS_PACK_VERSION';
 
@@ -278,5 +278,8 @@ fi
 #aws
 # =====90-prompt.sh=====
 #prompt
+
+#add a empty line after the command output
+PS1="\n$PS1";
 # =====99-local.sh=====
 #local/.gitignore
