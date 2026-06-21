@@ -41,6 +41,18 @@ ansible-vault edit group_vars/core/sudo_pass.yml
 
 grep -r "hosts.ini" ~/dotfiles
 grep -r "kubernetes" ~/dotfiles
+---------------------------------
+bash> type ktp
+ktp is a function
+ktp ()
+{
+    kubectl top pods
+}
+
+bash> watch "kubectl top pods"
+OR
+bash> watch 'bash -ic "ktp"'
+----------------------------------
 
 If broken kube-control-plane-noda:
 1) sudo kubeadm reset -f
