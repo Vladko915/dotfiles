@@ -4,7 +4,7 @@
   gather_facts: false
 
   vars:
-    current_version: "0.6"
+    current_version: "0.10"
 
   tasks:
     - name: Run galiaspv command

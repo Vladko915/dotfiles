@@ -46,6 +46,22 @@ if command -v kubectl >/dev/null 2>&1; then
     kubectl scale deployments "$1" --replicas="$2"
   }
 
+  ktp()
+  {
+    kubectl top pods
+  }
+
+  ktn()
+  {
+    kubectl top nodes
+  }
+
+  kdd()
+  {
+    kubectl describe deployment "$@"
+  }
+
+
 fi
 
 #kubeadm
