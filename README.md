@@ -52,6 +52,8 @@ ktp ()
 bash> watch "kubectl top pods"
 OR
 bash> watch 'bash -ic "ktp"'
+
+bash> alias kgnw6="kgnw | awk '{print \$6}' | sed -n '1p;2,4p' | xargs"
 ----------------------------------
 
 If broken kube-control-plane-noda:
