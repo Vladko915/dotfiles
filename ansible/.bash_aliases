@@ -1,7 +1,7 @@
 
 
 # =====00-version.sh=====
-ALIAS_PACK_VERSION='0.10';
+ALIAS_PACK_VERSION='0.11';
 
 alias galiaspv='echo $ALIAS_PACK_VERSION';
 
@@ -227,8 +227,14 @@ if command -v kubectl >/dev/null 2>&1; then
     kubectl describe deployment "$@"
   }
 
+  kdp()
+  {
+    kubectl describe pod "$@"
+  }
+
 
 fi
+
 
 #kubeadm
 if command -v kubeadm >/dev/null 2>&1; then
@@ -236,6 +242,16 @@ if command -v kubeadm >/dev/null 2>&1; then
   katoken()
   {
     kubeadm token create --print-join-command
+  }
+
+fi
+
+#egrep
+if command -v egrep >/dev/null 2>&1; then
+
+  egreps()
+  {
+    egrep "^Name:|^Namespace:|^Node:|^IP:|^Status|^Labels:"
   }
 
 fi
