@@ -1,7 +1,7 @@
 
 
 # =====00-version.sh=====
-ALIAS_PACK_VERSION='0.15';
+ALIAS_PACK_VERSION='0.16';
 
 alias galiaspv='echo $ALIAS_PACK_VERSION';
 
@@ -253,8 +253,10 @@ if command -v kubectl >/dev/null 2>&1; then
     kubectl get endpoints "$@"
   }
 
-
-
+  kaf()
+  {
+    kubectl apply -f "$@"
+  }
 
 
 fi

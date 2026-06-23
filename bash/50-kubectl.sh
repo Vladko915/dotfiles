@@ -87,8 +87,10 @@ if command -v kubectl >/dev/null 2>&1; then
     kubectl get endpoints "$@"
   }
 
-
-
+  kaf()
+  {
+    kubectl apply -f "$@"
+  }
 
 
 fi
