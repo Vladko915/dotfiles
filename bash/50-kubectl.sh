@@ -61,6 +61,12 @@ if command -v kubectl >/dev/null 2>&1; then
     kubectl describe deployment "$@"
   }
 
+  kds()
+  {
+    kubectl describe service "$@"
+  }
+
+
   kdp()
   {
     kubectl describe pod "$@"
@@ -71,10 +77,17 @@ if command -v kubectl >/dev/null 2>&1; then
     kubectl get all "$@"
   }
 
-  kge()
+  kgev()
   {
     kubectl get events "$@"
   }
+
+  kgen()
+  {
+    kubectl get endpoints "$@"
+  }
+
+
 
 
 
