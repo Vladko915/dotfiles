@@ -1,7 +1,7 @@
 
 
 # =====00-version.sh=====
-ALIAS_PACK_VERSION='0.11';
+ALIAS_PACK_VERSION='0.12';
 
 alias galiaspv='echo $ALIAS_PACK_VERSION';
 
@@ -230,6 +230,11 @@ if command -v kubectl >/dev/null 2>&1; then
   kdp()
   {
     kubectl describe pod "$@"
+  }
+
+  kga()
+  {
+    kubectl get all "$@"
   }
 
 
