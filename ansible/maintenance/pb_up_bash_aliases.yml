@@ -4,7 +4,7 @@
   gather_facts: false
 
   vars:
-    current_version: "0.12"
+    current_version: "0.14"
 
   tasks:
     - name: Run galiaspv command
@@ -35,3 +35,16 @@
       args:
         executable: /bin/bash
       when: galiaspv_output.stdout | trim is version(current_version, '<')
+
+    - name: Run galiaspv command after update
+      ansible.builtin.shell:
+        cmd: bash -i -c 'galiaspv'
+      args:
+        executable: /bin/bash
+      register: galiaspv_output_after_up
+      check_mode: false
+
+    - name: Show galiaspv output after up
+      ansible.builtin.debug:
+        msg: "{{ item }}"
+      loop: "{{ ['[' + inventory_hostname + ']'] + galiaspv_output_after_up.stdout_lines }}"

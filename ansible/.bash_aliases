@@ -1,7 +1,7 @@
 
 
 # =====00-version.sh=====
-ALIAS_PACK_VERSION='0.12';
+ALIAS_PACK_VERSION='0.14';
 
 alias galiaspv='echo $ALIAS_PACK_VERSION';
 
@@ -236,6 +236,12 @@ if command -v kubectl >/dev/null 2>&1; then
   {
     kubectl get all "$@"
   }
+
+  kge()
+  {
+    kubectl get events "$@"
+  }
+
 
 
 fi
