@@ -54,6 +54,25 @@ OR
 bash> watch 'bash -ic "ktp"'
 
 bash> alias kgnw6="kgnw | awk '{print \$6}' | sed -n '1p;2,4p' | xargs"
+
+bash> for cmd in {'ping -c 3','traceroute','curl -v'}; do $cmd ***.com; echo -e "\n"; done
+
+bash> hostnamectl
+bash> ip -a
+bash> ip neigh
+bash> arp -a
+
+ss -tanp //tcp-connects
+
+ip route          # переглянути таблицю маршрутів
+ip addr           # переглянути IP-адреси інтерфейсів
+ip neigh          # переглянути ARP-таблицю
+ping 8.8.8.8      # перевірити зв'язок
+traceroute 8.8.8.8  # побачити шлях пакетів (або tracepath, якщо traceroute не встановлено)
+
+cat /etc/resolv.conf //nameserver
+
+
 ----------------------------------
 
 If broken kube-control-plane-noda:
