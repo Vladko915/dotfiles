@@ -37,7 +37,11 @@ alias dash1='echo -e "------------------"'
 alias acs='apt-cache search '
 
 alias ttt="echo $TERM"
-alias sep="echo -e '\n-----\n'"
+
+sep()
+{
+echo -e '\n-----\n'
+}
 
 if command -v mcedit >/dev/null 2>&1; then
     alias bashrc="mcedit ~/.bashrc"
