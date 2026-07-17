@@ -1,7 +1,7 @@
 
 
 # =====00-version.sh=====
-ALIAS_PACK_VERSION='0.16';
+ALIAS_PACK_VERSION='0.17';
 
 alias galiaspv='echo $ALIAS_PACK_VERSION';
 
