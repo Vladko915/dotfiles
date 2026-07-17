@@ -39,6 +39,15 @@ ansible-vault edit group_vars/core/sudo_pass.yml
  for pc in {"core","kube-core","kube-control"};do (VBoxManage showvminfo $pc | grep -E "Memory size|Number of CPUs|State") && echo -e '\n---\n'; done
 
 
+for ip in {10,21,22}; do ssh user@192.168.0.$ip 'source ~/.bash_aliases && sep'; done
+#sep is a function of ~/.bash_aliases
+#sep ()
+#{
+#    echo -e '\n-----\n'
+#}
+
+
+
 grep -r "hosts.ini" ~/dotfiles
 grep -r "kubernetes" ~/dotfiles
 ---------------------------------
