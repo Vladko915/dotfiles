@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registry
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: registry
+  template:
+    metadata:
+      labels:
+        app: registry
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: kube-worker1
+      containers:
+        - name: registry
+          image: registry:2
+          ports:
+            - containerPort: 5000
+              hostPort: 5000
+          volumeMounts:
+            - name: storage
+              mountPath: /var/lib/registry
+          env:
+            - name: REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY
+              value: /var/lib/registry
+      volumes:
+        - name: storage
+          hostPath:
+            path: /mnt/registry
+            type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: registry
+  namespace: kube-system
+spec:
+  selector:
+    app: registry
+  type: NodePort
+  ports:
+    - port: 5000
+      targetPort: 5000
+      nodePort: 30500
