@@ -1,0 +1,56 @@
+
+"TP-Link_000A" - pseudo router-name,
+change to real.
+
+For enp2s0 (192.168.0.5)
+bash>
+sudo nmcli con mod "Wired connection 1" ipv4.addresses 192.168.0.5/24
+sudo nmcli con mod "Wired connection 1" ipv4.gateway 192.168.0.1
+sudo nmcli con mod "Wired connection 1" ipv4.dns "8.8.8.8 8.8.4.4"
+sudo nmcli con mod "Wired connection 1" ipv4.method manual
+sudo nmcli con up "Wired connection 1"
+
+For wlp3s0 (192.168.0.6)
+bash>
+sudo nmcli con mod "TP-Link_000A" ipv4.addresses 192.168.0.6/24
+sudo nmcli con mod "TP-Link_000A" ipv4.gateway 192.168.0.1
+sudo nmcli con mod "TP-Link_000A" ipv4.dns "8.8.8.8 8.8.4.4"
+sudo nmcli con mod "TP-Link_000A" ipv4.method manual
+sudo nmcli con up "TP-Link_000A"
+
+
+
+bash>
+ip a
+ip route
+
+-------------------------------------------------
+
+Revert
+For enp2s0 of DHCP
+bash>
+sudo nmcli con mod "Wired connection 1" ipv4.method auto
+sudo nmcli con mod "Wired connection 1" ipv4.addresses ""
+sudo nmcli con mod "Wired connection 1" ipv4.gateway ""
+sudo nmcli con mod "Wired connection 1" ipv4.dns ""
+sudo nmcli con up "Wired connection 1"
+
+For wlp3s0 of DHCP
+bash>
+sudo nmcli con mod "TP-Link_000A" ipv4.method auto
+sudo nmcli con mod "TP-Link_000A" ipv4.addresses ""
+sudo nmcli con mod "TP-Link_000A" ipv4.gateway ""
+sudo nmcli con mod "TP-Link_000A" ipv4.dns ""
+sudo nmcli con up "TP-Link_000A"
+
+
+OR
+
+Create backup:
+
+sudo cp -r /etc/NetworkManager/system-connections/ ~/nm-backup-$(date +%F)
+
+Revert:
+bash>
+sudo cp ~/nm-backup-*/* /etc/NetworkManager/system-connections/
+sudo systemctl restart NetworkManager
