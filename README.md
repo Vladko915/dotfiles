@@ -81,7 +81,45 @@ traceroute 8.8.8.8  # побачити шлях пакетів (або tracepath
 
 cat /etc/resolv.conf //nameserver
 
+----------------------------------------
 
+for ip in {10,21,22}; do curl http://192.168.0.$ip:30500/v2/_catalog && sep ;done
+
+//fast clear registry from kontrol-node1
+kubectl -n kube-system scale deployment registry --replicas=0
+ssh user@kube-worker1 "sudo rm -rf /mnt/registry/*"
+kubectl -n kube-system scale deployment registry --replicas=1
+
+user@pc:~/screenshot-bot$ cat /etc/docker/daemon.json
+{
+  "insecure-registries": ["192.168.0.10:30500","192.168.0.21:30500","192.168.0.22:30500"]
+}
+
+sudo systemctl restart docker
+
+docker build -t 192.168.0.10:30500/screenshot-bot:1.0.0 .
+docker push 192.168.0.10:30500/screenshot-bot:1.0.0
+
+scp -r k8s kube-control1:~/k8s
+
+kubectl apply -f ~/k8s/secret.yaml
+kubectl apply -f ~/k8s/configmap.yaml
+kubectl apply -f ~/k8s/deployment.yaml
+
+#delete
+kubectl delete -f ~/k8s/deployment.yaml
+kubectl delete -f ~/k8s/configmap.yaml
+kubectl delete -f ~/k8s/secret.yaml
+OR
+kubectl delete -f ~/k8s/
+
+#check
+kubectl get deployments
+kubectl get pods
+kubectl get configmaps
+kubectl get secrets
+OR
+kubectl get deployments,pods,configmaps,secrets
 ----------------------------------
 
 If broken kube-control-plane-noda:
