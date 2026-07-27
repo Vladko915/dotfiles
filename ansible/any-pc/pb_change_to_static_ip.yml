@@ -1,0 +1,65 @@
+---
+- name: Change to static IP on Kubernetes nodes of Ubuntu-servers
+  hosts: ips
+  gather_facts: false
+  become: true
+
+  tasks:
+    - name: Save old IP
+      ansible.builtin.set_fact:
+        old_ip: "{{ ansible_host }}"
+
+    - name: Write static netplan config
+      ansible.builtin.copy:
+        dest: /etc/netplan/00-installer-config.yaml
+        owner: root
+        group: root
+        mode: '0600'
+        content: |
+          # This is the network config written by 'subiquity'
+          network:
+            ethernets:
+              enp0s3:
+                dhcp4: false
+                dhcp6: false
+                addresses:
+                  - {{ set_static_ip }}/24
+                routes:
+                  - to: default
+                    via: 192.168.0.1
+                nameservers:
+                  addresses:
+                    - 8.8.8.8
+                    - 1.1.1.1
+            version: 2
+
+    - name: Apply netplan (connection will drop)
+      ansible.builtin.command:
+        cmd: netplan apply
+      async: 10
+      poll: 0
+
+
+- name: Verify new static IP
+  hosts: ips
+  gather_facts: false
+  vars:
+    ansible_host: "{{ set_static_ip }}"
+
+  tasks:
+    - name: Wait for host to come up on new IP
+      ansible.builtin.wait_for:
+        host: "{{ set_static_ip }}"
+        port: 22
+        delay: 5
+        timeout: 60
+      delegate_to: localhost
+
+    - name: Get IP addresses from remote host
+      ansible.builtin.command:
+        cmd: hostname -I
+      register: hostname_i_output
+
+    - name: Show result
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} | {{ hostvars[inventory_hostname]['old_ip'] }} | change to | {{ hostname_i_output.stdout }}"
