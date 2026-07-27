@@ -127,3 +127,21 @@ If broken kube-control-plane-noda:
 2) generate new token from kube-control-plane-noda
 3) sudo kubeadm join 192.168.0.10:6443.....
 4) check: $HOME/.kube/config
+
+-------------------
+#show dats from registry.crt
+bash> openssl x509 -in registry.crt -noout -text
+
+curl --cacert registry.crt https://registry.local:30500/v2/hello-world/tags/list
+curl --cacert registry.crt https://registry.local:5000/v2/hello-world/tags/list
+
+#for Debian/Ubuntu, added sert to CA
+sudo cp registry.crt /usr/local/share/ca-certificates/registry-local.crt
+sudo update-ca-certificates
+
+curl https://registry.local:30500/v2/hello-world/tags/list
+curl https://registry.local:5000/v2/hello-world/tags/list
+
+
+
+
