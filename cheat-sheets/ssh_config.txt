@@ -1,0 +1,50 @@
+
+# sourses for  ~/.ssh/config
+
+
+# === Personal GitHub account ===
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/id_ed25519
+    IdentitiesOnly yes
+
+
+# === Specific addresses ===
+Host core
+    HostName 192.168.0.114
+
+Host kube-core
+    HostName 192.168.0.116
+
+Host bastion
+    HostName 10.10.10.1
+
+Host kube-control1
+    HostName 192.168.0.10
+    ProxyJump bastion
+
+
+Host kube-worker1
+    HostName 192.168.0.21
+    ProxyJump bastion
+
+Host kube-worker2
+    HostName 192.168.0.22
+    ProxyJump bastion
+
+# === Default value for local network ===
+
+Host core kube-* bastion
+    User user
+    IdentityFile ~/.ssh/id_ed25519
+    IdentitiesOnly yes
+    #Keep the connection alive
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+    #Speed ​​up reconnections
+    ControlMaster auto
+    ControlPath ~/.ssh/sockets/%r@%h:%p
+    ControlPersist 10m
+
+#for support ssh-sockets, bash> mkdir -p ~/.ssh/sockets
