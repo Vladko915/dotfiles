@@ -33,6 +33,10 @@ Host kube-worker2
     HostName 192.168.0.22
     ProxyJump bastion
 
+Host kube-observability
+    HostName 192.168.0.23
+    ProxyJump bastion
+
 # === Default value for local network ===
 
 Host core kube-* bastion
