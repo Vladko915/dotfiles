@@ -30,6 +30,19 @@
       shell: chronyc makestep
       changed_when: false
 
+    - name: Allow unlimited clock steps in chrony config
+      replace:
+        path: /etc/chrony/chrony.conf
+        regexp: '^makestep 1 3$'
+        replace: 'makestep 1.0 -1'
+      register: chrony_config_updated
+
+    - name: Restart chrony if config changed
+      service:
+        name: chrony
+        state: restarted
+      when: chrony_config_updated.changed
+
     - name: Show current time
       command: timedatectl
       register: time_result
