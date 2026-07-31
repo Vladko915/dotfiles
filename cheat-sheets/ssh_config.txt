@@ -1,4 +1,3 @@
-
 # sourses for  ~/.ssh/config
 
 
@@ -19,6 +18,8 @@ Host kube-core
 
 Host bastion
     HostName 10.10.10.1
+    #alternative ip
+    #HostName 192.168.0.50
 
 Host kube-control1
     HostName 192.168.0.10
@@ -33,7 +34,7 @@ Host kube-worker2
     HostName 192.168.0.22
     ProxyJump bastion
 
-Host kube-observability
+Host kube-monitoring
     HostName 192.168.0.23
     ProxyJump bastion
 
