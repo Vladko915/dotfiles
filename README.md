@@ -124,7 +124,8 @@ kubectl get deployments,pods,configmaps,secrets
 
 If broken kube-control-plane-noda:
 1) sudo kubeadm reset -f
-2) generate new token from kube-control-plane-noda
+2) generate new token from kube-control-plane-noda:
+kubeadm token create --print-join-command
 3) sudo kubeadm join 192.168.0.10:6443.....
 4) check: $HOME/.kube/config
 
