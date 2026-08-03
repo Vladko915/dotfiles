@@ -1,3 +1,11 @@
+show connections:
+
+bash> nmcli connection show
+NAME                UUID                                  TYPE  DEVICE
+Wired connection 1  1********-*********-***********   ethernet  enp2s0
+lo                  2********-*********-***********   loopback  lo
+TP-Link_000A        3********-*********-***********   wifi      wlp3s0
+
 
 "TP-Link_000A" - pseudo router-name,
 change to real.
