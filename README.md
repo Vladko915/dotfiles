@@ -143,6 +143,87 @@ sudo update-ca-certificates
 curl https://registry.local:30500/v2/hello-world/tags/list
 curl https://registry.local:5000/v2/hello-world/tags/list
 
+#check settings of 'proxmon'-host from '~/.ssh/config'
+ssh -G proxmon | grep -E '^(user|hostname|identityfile|controlpath)'
+
+curl -v https://proxmon.myhome.com:8006/
+
+#add ssl-support for admin-pc
+scp proxmon:/etc/pve/pve-root-ca.pem /tmp/proxmox-ca.crt
+openssl x509 -in /tmp/proxmox-ca.crt -noout -subject -issuer
+sudo cp /tmp/proxmox-ca.crt /usr/local/share/ca-certificates/proxmox-ca.crt
+sudo update-ca-certificates
+#check
+curl -v https://proxmon.myhome.com:8006/
+#add ssl-support to chrome
+#add to DNS щк /etc/hosts
+192.168.0.90 proxmon.myhome.com
+#added /tmp/proxmox-ca.crt to Chrome Import Serticate, reload Chrome
+#check of Chrome-console> chrome://settings/certificates
 
 
 
+
+qm list
+qm config 102
+qm cloudinit dump 102 user
+qm cloudinit dump 102 network
+qm cloudinit dump 102 meta
+
+1)Create VM without iso.
+-Do not use any media
+-Added support Qemy-agent
+-CPU: kvm64
+-Network: wirewall:off
+
+2) qm importdisk 9000 /var/lib/vz/template/iso/noble-server-cloudimg-amd64.img local-lvm
+3) GUI:
+VM -> Hardware -> Unused Disk 0
+Edit → Bus/Device = SCSI → Add
+
+4) VM->Hardware -> Add → CloudInit Drive
+
+5)Options → Boot Order:
+
+first:   SCSI Disk
+second: CloudInit
+
+6) Settings Cloud-Init:
+Added: user,pass,dns,ip
+
+7) Start VM
+
+8) Enter to VM-console and install QEMU Guest Agent
+
+sudo apt update
+sudo apt install qemu-guest-agent -y
+sudo systemctl enable --now qemu-guest-agent
+
+sudo cloud-init clean
+
+sudo poweroff
+-----------------
+
+cloud-init status
+systemctl status qemu-guest-agent --no-pager
+sudo poweroff
+
+9) VM -> Convert to Template
+
+10) Template -> Clone
+11) Up Cloud-Init-settings: user,pass,dns,ip
+and Regenerate Disk
+12) Enjoi :-)
+---------------------------
+First resize hard-disk:
+1) Proxmon GUI: VM -> Hardware -> Hard disk -> Disk action -> Resize
+2) Go to VM-console: bash>
+df -h /
+sudo growpart /dev/sda 1
+sudo resize2fs /dev/sda1
+df -h /
+---------------------------
+Before transformation to template, use ща VM-console:
+bash>
+sudo cloud-init clean
+sudo poweroff
