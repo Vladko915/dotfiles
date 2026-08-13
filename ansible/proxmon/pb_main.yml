@@ -1,0 +1,8 @@
+---
+
+- name: Ping web
+  import_playbook: pb_ping_web.yml
+
+- name: kubeadm_init and plugins
+  import_playbook: pb_kubeadm_init.yml
+
