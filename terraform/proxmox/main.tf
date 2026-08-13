@@ -15,7 +15,7 @@ provider "proxmox" {
 resource "proxmox_virtual_environment_vm" "kube_control_01" {
   name      = "kube-control-01"
   node_name = "proxmon"
-  started   = false
+  started   = true
 
   clone {
     vm_id = 101
@@ -37,7 +37,7 @@ resource "proxmox_virtual_environment_vm" "kube_control_01" {
 resource "proxmox_virtual_environment_vm" "kube_control_02" {
   name      = "kube-control-02"
   node_name = "proxmon"
-  started   = false
+  started   = true
 
   clone {
     vm_id = 101
@@ -63,7 +63,7 @@ resource "proxmox_virtual_environment_vm" "kube_control_02" {
 resource "proxmox_virtual_environment_vm" "kube_control_03" {
   name      = "kube-control-03"
   node_name = "proxmon"
-  started   = false
+  started   = true
 
   clone {
     vm_id = 101
