@@ -15,8 +15,7 @@ provider "proxmox" {
 resource "proxmox_virtual_environment_vm" "kube_control_01" {
   name      = "kube-control-01"
   node_name = "proxmon"
-
-  started = false
+  started   = false
 
   clone {
     vm_id = 101
@@ -24,6 +23,8 @@ resource "proxmox_virtual_environment_vm" "kube_control_01" {
   }
 
   initialization {
+    datastore_id = "local-lvm"
+
     ip_config {
       ipv4 {
         address = "192.168.0.95/24"
@@ -31,4 +32,56 @@ resource "proxmox_virtual_environment_vm" "kube_control_01" {
       }
     }
   }
+}
+
+resource "proxmox_virtual_environment_vm" "kube_control_02" {
+  name      = "kube-control-02"
+  node_name = "proxmon"
+  started   = false
+
+  clone {
+    vm_id = 101
+    full  = true
+  }
+
+  initialization {
+    datastore_id = "local-lvm"
+
+    ip_config {
+      ipv4 {
+        address = "192.168.0.96/24"
+        gateway = "192.168.0.1"
+      }
+    }
+  }
+
+  depends_on = [
+    proxmox_virtual_environment_vm.kube_control_01
+  ]
+}
+
+resource "proxmox_virtual_environment_vm" "kube_control_03" {
+  name      = "kube-control-03"
+  node_name = "proxmon"
+  started   = false
+
+  clone {
+    vm_id = 101
+    full  = true
+  }
+
+  initialization {
+    datastore_id = "local-lvm"
+
+    ip_config {
+      ipv4 {
+        address = "192.168.0.97/24"
+        gateway = "192.168.0.1"
+      }
+    }
+  }
+
+  depends_on = [
+    proxmox_virtual_environment_vm.kube_control_02
+  ]
 }
