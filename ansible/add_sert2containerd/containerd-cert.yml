@@ -1,0 +1,43 @@
+---
+- hosts: core
+  become: true
+  gather_facts: false
+
+  vars:
+    registry_host: "192.168.0.10"
+    registry_port: "30500"
+    containerd_certs_dir: "/etc/containerd/certs.d"
+    registry_cert_src: "files/registry.crt"   # шлях до сертифіката на контроль-машині
+
+  tasks:
+    - name: Ensure certs.d directory for registry exists
+      ansible.builtin.file:
+        path: "{{ containerd_certs_dir }}/{{ registry_host }}:{{ registry_port }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Copy registry CA certificate
+      ansible.builtin.copy:
+        src: "{{ registry_cert_src }}"
+        dest: "{{ containerd_certs_dir }}/{{ registry_host }}:{{ registry_port }}/ca.crt"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart containerd
+
+    - name: Deploy hosts.toml configuration
+      ansible.builtin.template:
+        src: templates/hosts.toml.j2
+        dest: "{{ containerd_certs_dir }}/{{ registry_host }}:{{ registry_port }}/hosts.toml"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart containerd
+
+  handlers:
+    - name: Restart containerd
+      ansible.builtin.systemd:
+        name: containerd
+        state: restarted

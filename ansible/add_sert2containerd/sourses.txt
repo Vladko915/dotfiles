@@ -1,0 +1,17 @@
+ansible-playbook -i inventory.ini containerd-cert.yml
+
+
+5. Added support of cert for containerd (everyone node of Kubernetes-claster)
+
+sudo mkdir -p /etc/containerd/certs.d/192.168.0.10:30500
+sudo cp registry.crt /etc/containerd/certs.d/192.168.0.10:30500/ca.crt
+
+sudo tee /etc/containerd/certs.d/192.168.0.10:30500/hosts.toml <<EOF
+server = "https://192.168.0.10:30500"
+
+[host."https://192.168.0.10:30500"]
+  capabilities = ["pull", "resolve", "push"]
+  ca = "/etc/containerd/certs.d/192.168.0.10:30500/ca.crt"
+EOF
+
+sudo systemctl restart containerd
