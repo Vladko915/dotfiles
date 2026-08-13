@@ -85,3 +85,66 @@ resource "proxmox_virtual_environment_vm" "kube_control_03" {
     proxmox_virtual_environment_vm.kube_control_02
   ]
 }
+
+resource "proxmox_virtual_environment_vm" "load_balancer_01" {
+  name      = "load-balancer-01"
+  node_name = "proxmon"
+  started   = true
+
+
+  memory {
+    dedicated = 500
+  }
+
+  clone {
+    vm_id = 9000
+    full  = true
+  }
+
+  initialization {
+    datastore_id = "local-lvm"
+
+    ip_config {
+      ipv4 {
+        address = "192.168.0.98/24"
+        gateway = "192.168.0.1"
+      }
+    }
+  }
+
+  depends_on = [
+    proxmox_virtual_environment_vm.kube_control_03
+  ]
+}
+
+
+resource "proxmox_virtual_environment_vm" "load_balancer_02" {
+  name      = "load-balancer-02"
+  node_name = "proxmon"
+  started   = true
+
+
+  memory {
+    dedicated = 500
+  }
+
+  clone {
+    vm_id = 9000
+    full  = true
+  }
+
+  initialization {
+    datastore_id = "local-lvm"
+
+    ip_config {
+      ipv4 {
+        address = "192.168.0.99/24"
+        gateway = "192.168.0.1"
+      }
+    }
+  }
+
+  depends_on = [
+    proxmox_virtual_environment_vm.load_balancer_01
+  ]
+}
