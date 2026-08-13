@@ -59,7 +59,7 @@ ansible-playbook -i kube-control/kube-control.ini kube-control/pb_kubeadm_init.y
 OR
 
 apis kube-control/01_dhcp.ini kube-control/pb_change_to_static_ip.yml
-apis kube-control/02_static.ini kube-control/pb_main.yml
+apis kube-control/02_static.ini kube-control/pb_main.yml --ask-vault-pass  --ask-become-pass
 
 ---------------------------------
 
