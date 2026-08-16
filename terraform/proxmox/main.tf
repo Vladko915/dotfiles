@@ -15,7 +15,8 @@ provider "proxmox" {
 resource "proxmox_virtual_environment_vm" "kube_control_01" {
   name      = "kube-control-01"
   node_name = "proxmon"
-  started   = true
+  started   = false
+  on_boot   = false
 
   memory {
     dedicated = 2200
@@ -52,7 +53,8 @@ resource "proxmox_virtual_environment_vm" "kube_control_01" {
 resource "proxmox_virtual_environment_vm" "kube_control_02" {
   name      = "kube-control-02"
   node_name = "proxmon"
-  started   = true
+  started   = false
+  on_boot   = false
 
   memory {
     dedicated = 2200
@@ -93,7 +95,8 @@ resource "proxmox_virtual_environment_vm" "kube_control_02" {
 resource "proxmox_virtual_environment_vm" "kube_control_03" {
   name      = "kube-control-03"
   node_name = "proxmon"
-  started   = true
+  started   = false
+  on_boot   = false
 
   memory {
     dedicated = 2200
@@ -131,11 +134,11 @@ resource "proxmox_virtual_environment_vm" "kube_control_03" {
   ]
 }
 
-
 resource "proxmox_virtual_environment_vm" "kube_worker_01" {
   name      = "kube-worker-01"
   node_name = "proxmon"
-  started   = true
+  started   = false
+  on_boot   = false
 
   disk {
     interface    = "scsi1"
@@ -167,7 +170,8 @@ resource "proxmox_virtual_environment_vm" "kube_worker_01" {
 resource "proxmox_virtual_environment_vm" "kube_worker_02" {
   name      = "kube-worker-02"
   node_name = "proxmon"
-  started   = true
+  started   = false
+  on_boot   = false
 
   disk {
     interface    = "scsi1"
@@ -199,7 +203,8 @@ resource "proxmox_virtual_environment_vm" "kube_worker_02" {
 resource "proxmox_virtual_environment_vm" "load_balancer_01" {
   name      = "load-balancer-01"
   node_name = "proxmon"
-  started   = true
+  started   = false
+  on_boot   = false
 
   memory {
     dedicated = 500
@@ -229,7 +234,8 @@ resource "proxmox_virtual_environment_vm" "load_balancer_01" {
 resource "proxmox_virtual_environment_vm" "load_balancer_02" {
   name      = "load-balancer-02"
   node_name = "proxmon"
-  started   = true
+  started   = false
+  on_boot   = false
 
   memory {
     dedicated = 500
