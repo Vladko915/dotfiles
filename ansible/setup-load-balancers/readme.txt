@@ -24,3 +24,4 @@ If all correct, run:
 
 apis setup-load-balancers/inventory.ini setup-load-balancers/setup-load-balancers.yml
 apis setup-load-balancers/inventory.ini setup-load-balancers/verify-keepalived-ha.yml
+apis setup-load-balancers/inventory.ini setup-load-balancers/setup-ha-control-plane.yml

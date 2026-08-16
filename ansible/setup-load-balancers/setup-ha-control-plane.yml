@@ -1,0 +1,291 @@
+---
+- name: Setup HA Kubernetes control-plane
+  hosts: control_planes
+  become: true
+  gather_facts: false
+  serial: 1
+
+  vars:
+    pod_network_cidr: "10.244.0.0/16"
+
+    flannel_manifest: "https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml"
+
+    metrics_server_manifest: "https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml"
+
+    kubeconfig_dir: "/home/{{ ansible_user }}/.kube"
+
+  tasks:
+
+    # ============================================================
+    # 0. Cleanup previous Kubernetes cluster
+    # ============================================================
+
+    - name: Reset previous Kubernetes installation
+      ansible.builtin.command:
+        cmd: kubeadm reset -f
+      register: kubeadm_reset
+      changed_when: true
+      failed_when: false
+
+    - name: Stop kubelet
+      ansible.builtin.systemd:
+        name: kubelet
+        state: stopped
+      failed_when: false
+
+    - name: Remove CNI configuration
+      ansible.builtin.file:
+        path: /etc/cni/net.d
+        state: absent
+
+    - name: Remove CNI state
+      ansible.builtin.file:
+        path: /var/lib/cni
+        state: absent
+
+    - name: Remove Kubernetes configuration
+      ansible.builtin.file:
+        path: /etc/kubernetes
+        state: absent
+
+    - name: Remove user kubeconfig
+      ansible.builtin.file:
+        path: "{{ kubeconfig_dir }}"
+        state: absent
+
+
+    # ============================================================
+    # 1. Initialize first control-plane
+    # ============================================================
+
+    - name: Initialize Kubernetes control-plane
+      ansible.builtin.command:
+        cmd: >
+          kubeadm init
+          --pod-network-cidr={{ pod_network_cidr }}
+          --control-plane-endpoint="{{ hostvars['kubernetes-api']['vip_host'] }}:{{ hostvars['kubernetes-api']['kubernetes_api_port'] }}"
+          --upload-certs
+      args:
+        creates: /etc/kubernetes/admin.conf
+      register: kubeadm_init_result
+      when: kubernetes_role == 'INIT_CONTROL_NODE'
+
+    - name: Show kubeadm init output
+      ansible.builtin.debug:
+        var: kubeadm_init_result.stdout_lines
+      when:
+        - kubernetes_role == 'INIT_CONTROL_NODE'
+        - kubeadm_init_result.changed
+
+
+    # ============================================================
+    # 2. Configure kubectl
+    # ============================================================
+
+    - name: Create .kube directory
+      ansible.builtin.file:
+        path: "{{ kubeconfig_dir }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0755"
+      when: kubernetes_role == 'INIT_CONTROL_NODE'
+
+    - name: Copy admin.conf
+      ansible.builtin.copy:
+        src: /etc/kubernetes/admin.conf
+        dest: "{{ kubeconfig_dir }}/config"
+        remote_src: true
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0600"
+      when: kubernetes_role == 'INIT_CONTROL_NODE'
+
+
+    # ============================================================
+    # 3. Install Flannel
+    # ============================================================
+
+    - name: Apply Flannel CNI
+      ansible.builtin.command:
+        cmd: kubectl apply -f {{ flannel_manifest }}
+      environment:
+        KUBECONFIG: "{{ kubeconfig_dir }}/config"
+      register: flannel_result
+      changed_when: >
+        'created' in flannel_result.stdout or
+        'configured' in flannel_result.stdout
+      when: kubernetes_role == 'INIT_CONTROL_NODE'
+
+    - name: Show Flannel result
+      ansible.builtin.debug:
+        var: flannel_result.stdout_lines
+      when: kubernetes_role == 'INIT_CONTROL_NODE'
+
+
+    # ============================================================
+    # 4. Install Metrics Server
+    # ============================================================
+
+    - name: Apply Metrics Server
+      ansible.builtin.command:
+        cmd: kubectl apply -f {{ metrics_server_manifest }}
+      environment:
+        KUBECONFIG: "{{ kubeconfig_dir }}/config"
+      register: metrics_server_result
+      changed_when: >
+        'created' in metrics_server_result.stdout or
+        'configured' in metrics_server_result.stdout
+      when: kubernetes_role == 'INIT_CONTROL_NODE'
+
+    - name: Show Metrics Server result
+      ansible.builtin.debug:
+        var: metrics_server_result.stdout_lines
+      when: kubernetes_role == 'INIT_CONTROL_NODE'
+
+
+    # ============================================================
+    # 5. Wait for first control-plane to become Ready
+    # ============================================================
+
+    - name: Wait for first control-plane to become Ready
+      ansible.builtin.command:
+        cmd: >
+          kubectl get node {{ inventory_hostname }}
+          -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+      environment:
+        KUBECONFIG: "{{ kubeconfig_dir }}/config"
+      register: node_ready
+      changed_when: false
+      retries: 30
+      delay: 5
+      until: node_ready.stdout == "True"
+      when: kubernetes_role == 'INIT_CONTROL_NODE'
+
+
+    # ============================================================
+    # 6. Generate control-plane join credentials
+    # ============================================================
+
+    - name: Create Kubernetes join command
+      ansible.builtin.command:
+        cmd: kubeadm token create --print-join-command
+      register: join_command
+      changed_when: true
+      when: kubernetes_role == 'INIT_CONTROL_NODE'
+
+    - name: Upload control-plane certificates
+      ansible.builtin.command:
+        cmd: kubeadm init phase upload-certs --upload-certs
+      register: upload_certs
+      changed_when: true
+      when: kubernetes_role == 'INIT_CONTROL_NODE'
+
+    - name: Extract certificate key
+      ansible.builtin.set_fact:
+        certificate_key: >-
+          {{
+            upload_certs.stdout_lines
+            | select('match', '^[a-f0-9]{64}$')
+            | list
+            | last
+          }}
+      when: kubernetes_role == 'INIT_CONTROL_NODE'
+
+    - name: Build control-plane join command
+      ansible.builtin.set_fact:
+        control_plane_join_command: >-
+          {{ join_command.stdout }}
+          --control-plane
+          --certificate-key {{ certificate_key }}
+      when: kubernetes_role == 'INIT_CONTROL_NODE'
+
+    - name: Show control-plane join command
+      ansible.builtin.debug:
+        msg: "{{ control_plane_join_command }}"
+      when: kubernetes_role == 'INIT_CONTROL_NODE'
+
+
+    # ============================================================
+    # 7. Join additional control-plane
+    # ============================================================
+
+    - name: Check existing Kubernetes configuration
+      ansible.builtin.stat:
+        path: /etc/kubernetes/admin.conf
+      register: admin_conf
+      when: kubernetes_role == 'JOIN_CONTROL_NODE'
+
+    - name: Stop if node is already initialized
+      ansible.builtin.fail:
+        msg: >
+          {{ inventory_hostname }} already contains
+          /etc/kubernetes/admin.conf.
+          The node appears to be already initialized.
+      when:
+        - kubernetes_role == 'JOIN_CONTROL_NODE'
+        - admin_conf.stat.exists
+
+    - name: Join control-plane node
+      ansible.builtin.command:
+        cmd: "{{ hostvars['kube-control-01']['control_plane_join_command'] }}"
+      register: kubeadm_join_result
+      changed_when: true
+      when: kubernetes_role == 'JOIN_CONTROL_NODE'
+
+
+    # ============================================================
+    # 8. Final verification
+    # ============================================================
+
+    - name: Get Kubernetes nodes
+      ansible.builtin.command:
+        cmd: kubectl get nodes -o wide
+      environment:
+        KUBECONFIG: "{{ kubeconfig_dir }}/config"
+      register: nodes_result
+      changed_when: false
+      when: kubernetes_role == 'INIT_CONTROL_NODE'
+
+    - name: Show Kubernetes nodes
+      ansible.builtin.debug:
+        var: nodes_result.stdout_lines
+      when: kubernetes_role == 'INIT_CONTROL_NODE'
+
+
+    # ============================================================
+    # 9. Verify etcd
+    # ============================================================
+
+    - name: Get etcd pods
+      ansible.builtin.command:
+        cmd: kubectl -n kube-system get pods -l component=etcd -o wide
+      environment:
+        KUBECONFIG: "{{ kubeconfig_dir }}/config"
+      register: etcd_result
+      changed_when: false
+      when: kubernetes_role == 'INIT_CONTROL_NODE'
+
+    - name: Show etcd pods
+      ansible.builtin.debug:
+        var: etcd_result.stdout_lines
+      when: kubernetes_role == 'INIT_CONTROL_NODE'
+
+
+    # ============================================================
+    # 10. Verify Metrics Server
+    # ============================================================
+
+    - name: Get Metrics Server pods
+      ansible.builtin.command:
+        cmd: kubectl -n kube-system get pods -l k8s-app=metrics-server
+      environment:
+        KUBECONFIG: "{{ kubeconfig_dir }}/config"
+      register: metrics_result
+      changed_when: false
+      when: kubernetes_role == 'INIT_CONTROL_NODE'
+
+    - name: Show Metrics Server pods
+      ansible.builtin.debug:
+        var: metrics_result.stdout_lines
+      when: kubernetes_role == 'INIT_CONTROL_NODE'
