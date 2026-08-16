@@ -1,0 +1,143 @@
+---
+- name: Setup HA Kubernetes Load Balancers
+  hosts: load_balancers
+  become: true
+  gather_facts: true
+  serial: 1
+
+  vars:
+    haproxy_config: "/etc/haproxy/haproxy.cfg"
+    keepalived_config: "/etc/keepalived/keepalived.conf"
+
+  tasks:
+
+    # ============================================================
+    # 1. Install packages
+    # ============================================================
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install HAProxy and Keepalived
+      ansible.builtin.apt:
+        name:
+          - haproxy
+          - keepalived
+        state: present
+
+
+    # ============================================================
+    # 2. Enable ip_nonlocal_bind
+    # ============================================================
+
+    - name: Enable net.ipv4.ip_nonlocal_bind
+      ansible.builtin.sysctl:
+        name: net.ipv4.ip_nonlocal_bind
+        value: "1"
+        state: present
+        reload: true
+
+
+    # ============================================================
+    # 3. Deploy HAProxy configuration
+    # ============================================================
+
+    - name: Deploy HAProxy configuration
+      ansible.builtin.template:
+        src: haproxy.cfg.j2
+        dest: "{{ haproxy_config }}"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart HAProxy
+
+
+    # ============================================================
+    # 4. Validate HAProxy configuration
+    # ============================================================
+
+    - name: Validate HAProxy configuration
+      ansible.builtin.command:
+        cmd: haproxy -c -f {{ haproxy_config }}
+      changed_when: false
+
+
+    # ============================================================
+    # 5. Deploy Keepalived configuration
+    # ============================================================
+
+    - name: Deploy Keepalived configuration
+      ansible.builtin.template:
+        src: keepalived.conf.j2
+        dest: "{{ keepalived_config }}"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart Keepalived
+
+
+    # ============================================================
+    # 6. Validate Keepalived configuration
+    # ============================================================
+
+    - name: Validate Keepalived configuration
+      ansible.builtin.command:
+        cmd: keepalived -t -f {{ keepalived_config }}
+      changed_when: false
+
+
+    # ============================================================
+    # 7. Enable and start HAProxy
+    # ============================================================
+
+    - name: Enable and start HAProxy
+      ansible.builtin.systemd:
+        name: haproxy
+        enabled: true
+        state: started
+
+
+    # ============================================================
+    # 8. Enable and start Keepalived
+    # ============================================================
+
+    - name: Enable and start Keepalived
+      ansible.builtin.systemd:
+        name: keepalived
+        enabled: true
+        state: started
+
+
+    # ============================================================
+    # 9. Show configuration
+    # ============================================================
+
+    - name: Show load balancer configuration
+      ansible.builtin.debug:
+        msg:
+          - "Host: {{ inventory_hostname }}"
+          - "IP: {{ ansible_host }}"
+          - "Interface: {{ hostvars['keepalived-settings']['keepalived_interface'] }}"
+          - "Keepalived state: {{ keepalived_state }}"
+          - "Keepalived priority: {{ keepalived_priority }}"
+          - "Kubernetes API VIP: {{ hostvars['kubernetes-api']['vip_host'] }}"
+          - "Kubernetes API port: {{ hostvars['kubernetes-api']['kubernetes_api_port'] }}"
+
+
+  # ============================================================
+  # Handlers
+  # ============================================================
+
+  handlers:
+
+    - name: Restart HAProxy
+      ansible.builtin.systemd:
+        name: haproxy
+        state: restarted
+
+    - name: Restart Keepalived
+      ansible.builtin.systemd:
+        name: keepalived
+        state: restarted

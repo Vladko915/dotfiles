@@ -1,0 +1,32 @@
+global
+    log /dev/log local0
+    log /dev/log local1 notice
+    daemon
+
+defaults
+    log global
+    mode tcp
+    option tcplog
+
+    timeout connect 5s
+    timeout client 30s
+    timeout server 30s
+
+
+frontend kubernetes-api
+    bind {{ hostvars['kubernetes-api']['vip_host'] }}:{{ hostvars['kubernetes-api']['kubernetes_api_port'] }}
+
+    mode tcp
+
+    default_backend kubernetes-control-plane
+
+
+backend kubernetes-control-plane
+    mode tcp
+    balance roundrobin
+
+    option tcp-check
+
+{% for host in groups['control_planes'] %}
+    server {{ host }} {{ hostvars[host]['ansible_host'] }}:{{ hostvars['kubernetes-api']['kubernetes_api_port'] }} check
+{% endfor %}

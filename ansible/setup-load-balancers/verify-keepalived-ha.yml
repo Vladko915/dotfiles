@@ -1,0 +1,207 @@
+---
+- name: Verify Keepalived HA failover
+  hosts: load-balancer-01
+  become: true
+  gather_facts: false
+
+  vars:
+    vip: "{{ hostvars['kubernetes-api']['vip_host'] }}"
+    keepalived_interface: "{{ hostvars['keepalived-settings']['keepalived_interface'] }}"
+    backup_lb: "load-balancer-02"
+
+  tasks:
+
+    - name: Keepalived HA failover test
+      block:
+
+        # ========================================================
+        # 1. Initial state
+        # ========================================================
+
+        - name: Check VIP is on load-balancer-01
+          ansible.builtin.shell:
+            cmd: "ip addr show {{ keepalived_interface }} | grep -q '{{ vip }}'"
+          register: vip_on_master
+          changed_when: false
+          failed_when: false
+
+        - name: Verify initial VIP location
+          ansible.builtin.assert:
+            that:
+              - vip_on_master.rc == 0
+            fail_msg: >
+              VIP {{ vip }} is NOT on load-balancer-01.
+              Failover test aborted.
+            success_msg: >
+              VIP {{ vip }} is currently on load-balancer-01.
+
+
+        - name: Check VIP is not on load-balancer-02
+          ansible.builtin.shell:
+            cmd: "ip addr show {{ keepalived_interface }} | grep -q '{{ vip }}'"
+          delegate_to: "{{ backup_lb }}"
+          register: vip_on_backup
+          changed_when: false
+          failed_when: false
+
+        - name: Verify VIP is not on load-balancer-02
+          ansible.builtin.assert:
+            that:
+              - vip_on_backup.rc != 0
+            fail_msg: >
+              VIP {{ vip }} is already on load-balancer-02.
+              Failover test aborted.
+            success_msg: >
+              VIP {{ vip }} is not on load-balancer-02.
+
+
+        # ========================================================
+        # 2. Failover
+        # ========================================================
+
+        - name: Stop Keepalived on load-balancer-01
+          ansible.builtin.systemd:
+            name: keepalived
+            state: stopped
+
+
+        - name: Wait for VIP to move to load-balancer-02
+          ansible.builtin.shell:
+            cmd: "ip addr show {{ keepalived_interface }} | grep -q '{{ vip }}'"
+          delegate_to: "{{ backup_lb }}"
+          register: vip_on_backup_after_failover
+          changed_when: false
+          retries: 15
+          delay: 1
+          until: vip_on_backup_after_failover.rc == 0
+
+
+        - name: Check VIP disappeared from load-balancer-01
+          ansible.builtin.shell:
+            cmd: "ip addr show {{ keepalived_interface }} | grep -q '{{ vip }}'"
+          register: vip_still_on_master
+          changed_when: false
+          failed_when: false
+
+        - name: Verify failover to load-balancer-02
+          ansible.builtin.assert:
+            that:
+              - vip_still_on_master.rc != 0
+            fail_msg: >
+              VIP {{ vip }} is still on load-balancer-01.
+            success_msg: >
+              FAILOVER OK:
+              VIP {{ vip }} moved from load-balancer-01
+              to load-balancer-02.
+
+
+        # ========================================================
+        # 3. Failback
+        # ========================================================
+
+        - name: Start Keepalived on load-balancer-01
+          ansible.builtin.systemd:
+            name: keepalived
+            state: started
+
+
+        - name: Wait for VIP to return to load-balancer-01
+          ansible.builtin.shell:
+            cmd: "ip addr show {{ keepalived_interface }} | grep -q '{{ vip }}'"
+          register: vip_returned_to_master
+          changed_when: false
+          retries: 15
+          delay: 1
+          until: vip_returned_to_master.rc == 0
+
+
+        - name: Check VIP disappeared from load-balancer-02
+          ansible.builtin.shell:
+            cmd: "ip addr show {{ keepalived_interface }} | grep -q '{{ vip }}'"
+          delegate_to: "{{ backup_lb }}"
+          register: vip_still_on_backup
+          changed_when: false
+          failed_when: false
+
+        - name: Verify failback to load-balancer-01
+          ansible.builtin.assert:
+            that:
+              - vip_still_on_backup.rc != 0
+            fail_msg: >
+              VIP {{ vip }} is still on load-balancer-02.
+            success_msg: >
+              FAILBACK OK:
+              VIP {{ vip }} returned to load-balancer-01.
+
+
+        # ========================================================
+        # 4. Final verification
+        # ========================================================
+
+        - name: Check Keepalived service on load-balancer-01
+          ansible.builtin.systemd:
+            name: keepalived
+          register: keepalived_status
+
+        - name: Verify Keepalived is active
+          ansible.builtin.assert:
+            that:
+              - keepalived_status.status.ActiveState == "active"
+            fail_msg: >
+              Keepalived is NOT active on load-balancer-01.
+            success_msg: >
+              Keepalived is active on load-balancer-01.
+
+
+        - name: Show final HA test result
+          ansible.builtin.debug:
+            msg:
+              - "=============================================="
+              - "Keepalived HA test completed successfully"
+              - "VIP: {{ vip }}"
+              - "MASTER: load-balancer-01 ({{ hostvars['load-balancer-01']['ansible_host'] }})"
+              - "BACKUP: load-balancer-02 ({{ hostvars['load-balancer-02']['ansible_host'] }})"
+              - "Interface: {{ keepalived_interface }}"
+              - "=============================================="
+
+
+      # ==========================================================
+      # Recovery if any task in the block fails
+      # ==========================================================
+
+      rescue:
+
+        - name: Restore Keepalived on load-balancer-01
+          ansible.builtin.systemd:
+            name: keepalived
+            state: started
+
+        - name: Wait for Keepalived to become active
+          ansible.builtin.command:
+            cmd: systemctl is-active keepalived
+          register: keepalived_recovery
+          changed_when: false
+          retries: 10
+          delay: 1
+          until: keepalived_recovery.rc == 0
+
+        - name: Show recovery message
+          ansible.builtin.debug:
+            msg:
+              - "=============================================="
+              - "HA TEST FAILED"
+              - "Keepalived on load-balancer-01 was restored"
+              - "Keepalived status: {{ keepalived_recovery.stdout }}"
+              - "=============================================="
+
+
+      # ==========================================================
+      # Always ensure Keepalived is running
+      # ==========================================================
+
+      always:
+
+        - name: Ensure Keepalived is running on load-balancer-01
+          ansible.builtin.systemd:
+            name: keepalived
+            state: started
