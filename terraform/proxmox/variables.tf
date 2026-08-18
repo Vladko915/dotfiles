@@ -33,3 +33,9 @@ variable "clone_full" {
   type        = bool
   default     = false
 }
+
+variable "vm_up_delay" {
+  description = "Delay in seconds before starting the next VM"
+  type        = number
+  default     = 100
+}

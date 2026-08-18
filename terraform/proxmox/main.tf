@@ -18,6 +18,11 @@ resource "proxmox_virtual_environment_vm" "kube_control_01" {
   started   = var.vm_started
   on_boot   = var.vm_on_boot
 
+  startup {
+    order    = 1
+    up_delay = var.vm_up_delay
+  }
+
   memory {
     dedicated = 2200
   }
@@ -55,6 +60,11 @@ resource "proxmox_virtual_environment_vm" "kube_control_02" {
   node_name = "proxmon"
   started   = var.vm_started
   on_boot   = var.vm_on_boot
+
+  startup {
+    order    = 2
+    up_delay = var.vm_up_delay
+  }
 
   memory {
     dedicated = 2200
@@ -98,6 +108,11 @@ resource "proxmox_virtual_environment_vm" "kube_control_03" {
   started   = var.vm_started
   on_boot   = var.vm_on_boot
 
+  startup {
+    order    = 3
+    up_delay = var.vm_up_delay
+  }
+
   memory {
     dedicated = 2200
   }
@@ -140,6 +155,11 @@ resource "proxmox_virtual_environment_vm" "kube_worker_01" {
   started   = var.vm_started
   on_boot   = var.vm_on_boot
 
+  startup {
+    order    = 4
+    up_delay = var.vm_up_delay
+  }
+
   memory {
     dedicated = 1200
   }
@@ -176,6 +196,11 @@ resource "proxmox_virtual_environment_vm" "kube_worker_02" {
   node_name = "proxmon"
   started   = var.vm_started
   on_boot   = var.vm_on_boot
+
+  startup {
+    order    = 5
+    up_delay = var.vm_up_delay
+  }
 
   memory {
     dedicated = 1200
@@ -214,6 +239,11 @@ resource "proxmox_virtual_environment_vm" "load_balancer_01" {
   started   = var.vm_started
   on_boot   = var.vm_on_boot
 
+  startup {
+    order    = 6
+    up_delay = var.vm_up_delay
+  }
+
   disk {
     interface    = "scsi1"
     datastore_id = "local-lvm"
@@ -250,6 +280,11 @@ resource "proxmox_virtual_environment_vm" "load_balancer_02" {
   node_name = "proxmon"
   started   = var.vm_started
   on_boot   = var.vm_on_boot
+
+  startup {
+    order    = 7
+    up_delay = var.vm_up_delay
+  }
 
   disk {
     interface    = "scsi1"
