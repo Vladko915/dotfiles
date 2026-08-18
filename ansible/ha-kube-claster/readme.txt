@@ -41,3 +41,16 @@ apis ha-kube-claster/inventory.ini ha-kube-claster/setup-ha-kube-claster.yml
 
 for ip in {93,94,95,96,97,98,99}; do ssh-keygen -f ~/.ssh/known_hosts -R 192.168.0.$ip; done
 
+df -h
+df -ih
+lsblk
+
+user@load-balancer-01:/var/cache/apt/archives$ sudo du -sh /var/cache/apt/archives/
+162M	/var/cache/apt/archives/
+
+sudo apt clean
+
+systemctl status pvestatd
+systemctl restart pvestatd
+
+

@@ -54,7 +54,21 @@
         msg: "ip_forward: {{ ip_forward.stdout }}"
 
     # ============================================================
-    # 3. Install containerd
+    # Wait for APT locks
+    # ============================================================
+    - name: Wait for APT locks
+      ansible.builtin.shell: |
+        while \
+          fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || \
+          fuser /var/lib/dpkg/lock >/dev/null 2>&1 || \
+          fuser /var/cache/apt/archives/lock >/dev/null 2>&1 || \
+          fuser /var/lib/apt/lists/lock >/dev/null 2>&1
+        do
+          sleep 5
+        done
+      changed_when: false
+    # ============================================================
+    # 4. Install containerd
     # ============================================================
 
     - name: Install containerd
@@ -108,9 +122,39 @@
       args:
         creates: /etc/apt/sources.list.d/kubernetes.list
 
+    # ============================================================
+    # Wait for APT locks
+    # ============================================================
+    - name: Wait for APT locks
+      ansible.builtin.shell: |
+        while \
+          fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || \
+          fuser /var/lib/dpkg/lock >/dev/null 2>&1 || \
+          fuser /var/cache/apt/archives/lock >/dev/null 2>&1 || \
+          fuser /var/lib/apt/lists/lock >/dev/null 2>&1
+        do
+          sleep 5
+        done
+      changed_when: false
+
     - name: apt-get update
       ansible.builtin.apt:
         update_cache: yes
+
+    # ============================================================
+    # Wait for APT locks
+    # ============================================================
+    - name: Wait for APT locks
+      ansible.builtin.shell: |
+        while \
+          fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || \
+          fuser /var/lib/dpkg/lock >/dev/null 2>&1 || \
+          fuser /var/cache/apt/archives/lock >/dev/null 2>&1 || \
+          fuser /var/lib/apt/lists/lock >/dev/null 2>&1
+        do
+          sleep 5
+        done
+      changed_when: false
 
     - name: Install kubelet kubeadm kubectl
       ansible.builtin.apt:
@@ -129,3 +173,11 @@
         name: kubelet
         enabled: yes
         state: started
+
+    # ============================================================
+    # Cleanup APT cache
+    # ============================================================
+
+    - name: Clean APT cache
+      ansible.builtin.command: apt clean
+      changed_when: false

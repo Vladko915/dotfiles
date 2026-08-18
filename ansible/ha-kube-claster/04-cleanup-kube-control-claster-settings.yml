@@ -46,3 +46,26 @@
       ansible.builtin.file:
         path: "{{ kubeconfig_dir }}"
         state: absent
+
+    # ============================================================
+    # Wait for APT locks
+    # ============================================================
+    - name: Wait for APT locks
+      ansible.builtin.shell: |
+        while \
+          fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || \
+          fuser /var/lib/dpkg/lock >/dev/null 2>&1 || \
+          fuser /var/cache/apt/archives/lock >/dev/null 2>&1 || \
+          fuser /var/lib/apt/lists/lock >/dev/null 2>&1
+        do
+          sleep 5
+        done
+      changed_when: false
+
+    # ============================================================
+    # Cleanup APT cache
+    # ============================================================
+
+    - name: Clean APT cache
+      ansible.builtin.command: apt clean
+      changed_when: false
