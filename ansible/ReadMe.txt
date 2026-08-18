@@ -114,3 +114,8 @@ ssh user@192.168.0.120 "bash -lc 'source ~/.bash_aliases && curtime'"
 
 for ip in {10,105,106}; do ssh user@192.168.0.$ip 'hostname && hostname -I && echo -e "\n"'; done
 
+for ip in {93,94,95,96,97,98,99}; do ssh user@192.168.0.$ip 'hostname && hostname -I && echo -e "\n"'; done
+
+ip addr
+ip -br addr
+
