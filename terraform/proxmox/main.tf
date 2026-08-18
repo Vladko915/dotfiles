@@ -15,8 +15,8 @@ provider "proxmox" {
 resource "proxmox_virtual_environment_vm" "kube_control_01" {
   name      = "kube-control-01"
   node_name = "proxmon"
-  started   = false
-  on_boot   = false
+  started   = var.vm_started
+  on_boot   = var.vm_on_boot
 
   memory {
     dedicated = 2200
@@ -24,7 +24,7 @@ resource "proxmox_virtual_environment_vm" "kube_control_01" {
 
   cpu {
     cores = 2
-    type  = "kvm64"
+    type  = var.vm_type
   }
 
   disk {
@@ -34,8 +34,8 @@ resource "proxmox_virtual_environment_vm" "kube_control_01" {
   }
 
   clone {
-    vm_id = 100
-    full  = false
+    vm_id = var.clone_vm_id
+    full  = var.clone_full
   }
 
   initialization {
@@ -53,8 +53,8 @@ resource "proxmox_virtual_environment_vm" "kube_control_01" {
 resource "proxmox_virtual_environment_vm" "kube_control_02" {
   name      = "kube-control-02"
   node_name = "proxmon"
-  started   = false
-  on_boot   = false
+  started   = var.vm_started
+  on_boot   = var.vm_on_boot
 
   memory {
     dedicated = 2200
@@ -62,7 +62,7 @@ resource "proxmox_virtual_environment_vm" "kube_control_02" {
 
   cpu {
     cores = 2
-    type  = "kvm64"
+    type  = var.vm_type
   }
 
   disk {
@@ -72,8 +72,8 @@ resource "proxmox_virtual_environment_vm" "kube_control_02" {
   }
 
   clone {
-    vm_id = 100
-    full  = false
+    vm_id = var.clone_vm_id
+    full  = var.clone_full
   }
 
   initialization {
@@ -95,8 +95,8 @@ resource "proxmox_virtual_environment_vm" "kube_control_02" {
 resource "proxmox_virtual_environment_vm" "kube_control_03" {
   name      = "kube-control-03"
   node_name = "proxmon"
-  started   = false
-  on_boot   = false
+  started   = var.vm_started
+  on_boot   = var.vm_on_boot
 
   memory {
     dedicated = 2200
@@ -104,7 +104,7 @@ resource "proxmox_virtual_environment_vm" "kube_control_03" {
 
   cpu {
     cores = 2
-    type  = "kvm64"
+    type  = var.vm_type
   }
 
   disk {
@@ -114,8 +114,8 @@ resource "proxmox_virtual_environment_vm" "kube_control_03" {
   }
 
   clone {
-    vm_id = 100
-    full  = false
+    vm_id = var.clone_vm_id
+    full  = var.clone_full
   }
 
   initialization {
@@ -137,8 +137,12 @@ resource "proxmox_virtual_environment_vm" "kube_control_03" {
 resource "proxmox_virtual_environment_vm" "kube_worker_01" {
   name      = "kube-worker-01"
   node_name = "proxmon"
-  started   = false
-  on_boot   = false
+  started   = var.vm_started
+  on_boot   = var.vm_on_boot
+
+  memory {
+    dedicated = 1200
+  }
 
   disk {
     interface    = "scsi1"
@@ -147,8 +151,8 @@ resource "proxmox_virtual_environment_vm" "kube_worker_01" {
   }
 
   clone {
-    vm_id = 100
-    full  = false
+    vm_id = var.clone_vm_id
+    full  = var.clone_full
   }
 
   initialization {
@@ -170,8 +174,12 @@ resource "proxmox_virtual_environment_vm" "kube_worker_01" {
 resource "proxmox_virtual_environment_vm" "kube_worker_02" {
   name      = "kube-worker-02"
   node_name = "proxmon"
-  started   = false
-  on_boot   = false
+  started   = var.vm_started
+  on_boot   = var.vm_on_boot
+
+  memory {
+    dedicated = 1200
+  }
 
   disk {
     interface    = "scsi1"
@@ -180,8 +188,8 @@ resource "proxmox_virtual_environment_vm" "kube_worker_02" {
   }
 
   clone {
-    vm_id = 100
-    full  = false
+    vm_id = var.clone_vm_id
+    full  = var.clone_full
   }
 
   initialization {
@@ -203,16 +211,16 @@ resource "proxmox_virtual_environment_vm" "kube_worker_02" {
 resource "proxmox_virtual_environment_vm" "load_balancer_01" {
   name      = "load-balancer-01"
   node_name = "proxmon"
-  started   = false
-  on_boot   = false
+  started   = var.vm_started
+  on_boot   = var.vm_on_boot
 
   memory {
     dedicated = 500
   }
 
   clone {
-    vm_id = 9000
-    full  = false
+    vm_id = var.clone_vm_id
+    full  = var.clone_full
   }
 
   initialization {
@@ -234,16 +242,16 @@ resource "proxmox_virtual_environment_vm" "load_balancer_01" {
 resource "proxmox_virtual_environment_vm" "load_balancer_02" {
   name      = "load-balancer-02"
   node_name = "proxmon"
-  started   = false
-  on_boot   = false
+  started   = var.vm_started
+  on_boot   = var.vm_on_boot
 
   memory {
     dedicated = 500
   }
 
   clone {
-    vm_id = 9000
-    full  = false
+    vm_id = var.clone_vm_id
+    full  = var.clone_full
   }
 
   initialization {
