@@ -1,0 +1,48 @@
+---
+- name: Cleanup previous Kubernetes cluster
+  hosts: control_planes
+  become: true
+  gather_facts: false
+  #serial: 1
+
+  vars:
+    kubeconfig_dir: "/home/{{ ansible_user }}/.kube"
+
+  tasks:
+
+    # ============================================================
+    # 0. Cleanup previous Kubernetes cluster
+    # ============================================================
+
+    - name: Reset previous Kubernetes installation
+      ansible.builtin.command:
+        cmd: kubeadm reset -f
+      register: kubeadm_reset
+      changed_when: true
+      failed_when: false
+
+    - name: Stop kubelet
+      ansible.builtin.systemd:
+        name: kubelet
+        state: stopped
+      failed_when: false
+
+    - name: Remove CNI configuration
+      ansible.builtin.file:
+        path: /etc/cni/net.d
+        state: absent
+
+    - name: Remove CNI state
+      ansible.builtin.file:
+        path: /var/lib/cni
+        state: absent
+
+    - name: Remove Kubernetes configuration
+      ansible.builtin.file:
+        path: /etc/kubernetes
+        state: absent
+
+    - name: Remove user kubeconfig
+      ansible.builtin.file:
+        path: "{{ kubeconfig_dir }}"
+        state: absent

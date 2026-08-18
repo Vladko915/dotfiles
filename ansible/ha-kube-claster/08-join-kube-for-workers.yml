@@ -1,0 +1,124 @@
+---
+- name: Join worker nodes to Kubernetes cluster
+  hosts: workers
+  become: true
+  gather_facts: false
+  serial: 1
+
+  vars:
+    kubeconfig_dir: "/home/{{ ansible_user }}/.kube"
+
+  tasks:
+
+    # ============================================================
+    # 1. Check whether worker is already joined
+    # ============================================================
+
+    - name: Check if worker is already joined
+      ansible.builtin.stat:
+        path: /etc/kubernetes/kubelet.conf
+      register: kubelet_conf
+
+
+    # ============================================================
+    # 2. Generate fresh join command on kube-control-01
+    # ============================================================
+
+    - name: Generate worker join command
+      ansible.builtin.command:
+        cmd: kubeadm token create --print-join-command
+      delegate_to: kube-control-01
+      register: worker_join_command
+      changed_when: false
+      when: not kubelet_conf.stat.exists
+
+
+    # ============================================================
+    # 3. Join worker to Kubernetes cluster
+    # ============================================================
+
+    - name: Join worker node
+      ansible.builtin.command:
+        cmd: "{{ worker_join_command.stdout }}"
+      when: not kubelet_conf.stat.exists
+      register: join_result
+      changed_when: true
+
+
+    # ============================================================
+    # 4. Show join result
+    # ============================================================
+
+    - name: Show kubeadm join output
+      ansible.builtin.debug:
+        msg:
+          - "Worker: {{ inventory_hostname }}"
+          - "IP: {{ ansible_host }}"
+          - "kubeadm join completed successfully"
+      when:
+        - not kubelet_conf.stat.exists
+        - join_result.rc == 0
+
+
+    # ============================================================
+    # 5. Wait until worker becomes Ready
+    # ============================================================
+
+    - name: Wait until worker becomes Ready
+      ansible.builtin.command:
+        cmd: >
+          kubectl get node {{ inventory_hostname }}
+          -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+      delegate_to: kube-control-01
+      environment:
+        KUBECONFIG: "{{ kubeconfig_dir }}/config"
+      register: worker_ready
+      changed_when: false
+      retries: 30
+      delay: 5
+      until: worker_ready.stdout == "True"
+
+
+    # ============================================================
+    # 6. Show worker node
+    # ============================================================
+
+    - name: Show joined worker
+      ansible.builtin.command:
+        cmd: kubectl get node {{ inventory_hostname }} -o wide
+      delegate_to: kube-control-01
+      environment:
+        KUBECONFIG: "{{ kubeconfig_dir }}/config"
+      register: worker_node
+      changed_when: false
+
+    - name: Display worker node
+      ansible.builtin.debug:
+        var: worker_node.stdout_lines
+
+
+# ================================================================
+# 7. Final cluster verification
+# ================================================================
+
+- name: Verify complete Kubernetes cluster
+  hosts: kube-control-01
+  become: true
+  gather_facts: false
+
+  vars:
+    kubeconfig_dir: "/home/{{ ansible_user }}/.kube"
+
+  tasks:
+
+    - name: Get all Kubernetes nodes
+      ansible.builtin.command:
+        cmd: kubectl get nodes -o wide
+      environment:
+        KUBECONFIG: "{{ kubeconfig_dir }}/config"
+      register: cluster_nodes
+      changed_when: false
+
+    - name: Show Kubernetes cluster
+      ansible.builtin.debug:
+        var: cluster_nodes.stdout_lines

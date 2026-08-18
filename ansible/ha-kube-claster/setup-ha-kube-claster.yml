@@ -1,0 +1,25 @@
+---
+
+- name: Setup HA Kubernetes control-plane
+  import_playbook: 01-setup-kube-core-for-control-planes.yml
+
+- name: Setup HA Kubernetes Load Balancers
+  import_playbook: 02-setup-load-balancers.yml
+
+- name: Verify Keepalived HA failover
+  import_playbook: 03-verify-keepalived-ha.yml
+
+- name: Cleanup previous Kubernetes cluster for kontrol-planes
+  import_playbook: 04-cleanup-kube-control-claster-settings.yml
+
+- name: Setup HA Kubernetes control-plane
+  import_playbook: 05-setup-ha-kube-control-plane.yml
+
+- name: Cleanup previous Kubernetes cluster for workers
+  import_playbook: 06-cleanup-kube-worker-claster-settings.yml
+
+- name: Setup cube-core for Kubernetes of workers
+  import_playbook: 07-setup-kube-core-workers.yml
+
+- name: Join worker nodes to Kubernetes cluster
+  import_playbook: 08-join-kube-for-workers.yml

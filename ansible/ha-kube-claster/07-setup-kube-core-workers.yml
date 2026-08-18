@@ -1,0 +1,131 @@
+---
+- name: Setup cube-core for Kubernetes of workers
+  hosts: workers
+  become: true
+  gather_facts: false
+  serial: 1
+
+  tasks:
+
+    # ============================================================
+    # 1. Disable swap
+    # ============================================================
+    - name: Disable swap
+      command: swapoff -a
+
+    - name: Remove swap file
+      file:
+        path: /swap.img
+        state: absent
+
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: yes
+
+    # ============================================================
+    # 2. Ip-forward setup
+    # ============================================================
+
+    - name: Copy kubernetes sysctl config
+      ansible.builtin.copy:
+        src: ../kube-core/99-kubernetes.conf
+        dest: /etc/sysctl.d/99-kubernetes.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Load br_netfilter module
+      command: modprobe br_netfilter
+
+    - name: Add br_netfilter to modules-load
+      ansible.builtin.shell: echo "br_netfilter" | tee /etc/modules-load.d/br_netfilter.conf
+      changed_when: true
+
+    - name: Apply sysctl settings
+      command: sysctl --system
+
+    - name: Check ip_forward
+      command: cat /proc/sys/net/ipv4/ip_forward
+      register: ip_forward
+      changed_when: false
+
+    - name: Show ip_forward value
+      debug:
+        msg: "ip_forward: {{ ip_forward.stdout }}"
+
+    # ============================================================
+    # 3. Install containerd
+    # ============================================================
+
+    - name: Install containerd
+      ansible.builtin.apt:
+        name: containerd
+        state: present
+        update_cache: yes
+
+    - name: Create containerd config directory
+      ansible.builtin.file:
+        path: /etc/containerd
+        state: directory
+        mode: '0755'
+
+    - name: Generate default containerd config
+      ansible.builtin.shell: containerd config default | tee /etc/containerd/config.toml
+      changed_when: true
+
+    - name: Fix pause image version
+      ansible.builtin.replace:
+        path: /etc/containerd/config.toml
+        regexp: "sandbox = 'registry.k8s.io/pause:3.10.1'"
+        replace: "sandbox = 'registry.k8s.io/pause:3.10'"
+
+    - name: Restart containerd
+      ansible.builtin.service:
+        name: containerd
+        state: restarted
+
+    - name: Enable containerd
+      ansible.builtin.service:
+        name: containerd
+        enabled: yes
+
+    # ============================================================
+    # 3. Install Kubernetes
+    # ============================================================
+    - name: Create keyrings directory
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Add Kubernetes GPG key
+      ansible.builtin.shell: curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      args:
+        creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+    - name: Add Kubernetes repository
+      ansible.builtin.shell: echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /' | tee /etc/apt/sources.list.d/kubernetes.list
+      args:
+        creates: /etc/apt/sources.list.d/kubernetes.list
+
+    - name: apt-get update
+      ansible.builtin.apt:
+        update_cache: yes
+
+    - name: Install kubelet kubeadm kubectl
+      ansible.builtin.apt:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: present
+
+    - name: Hold kubelet kubeadm kubectl
+      ansible.builtin.shell: apt-mark hold kubelet kubeadm kubectl
+      changed_when: false
+
+    - name: Enable and start kubelet
+      ansible.builtin.service:
+        name: kubelet
+        enabled: yes
+        state: started
