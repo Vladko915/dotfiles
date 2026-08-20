@@ -23,3 +23,9 @@
 
 - name: Join worker nodes to Kubernetes cluster
   import_playbook: 08-join-kube-for-workers.yml
+
+- name: Configure control-plane of metrics to Kubernetes cluster
+  import_playbook: 09-configure-control-plane-metrics.yml
+
+- name: Configure worker-nodes of metrics to Kubernetes cluster
+  import_playbook: 10-configure-worker-metrics.yml

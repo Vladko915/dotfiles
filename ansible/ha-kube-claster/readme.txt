@@ -34,6 +34,9 @@ apis ha-kube-claster/inventory.ini ha-kube-claster/06-cleanup-kube-worker-claste
 apis ha-kube-claster/inventory.ini ha-kube-claster/07-setup-kube-core-workers.yml
 apis ha-kube-claster/inventory.ini ha-kube-claster/08-join-kube-for-workers.yml
 
+apis ha-kube-claster/inventory.ini ha-kube-claster/09-configure-control-plane-metrics.yml
+apis ha-kube-claster/inventory.ini ha-kube-claster/10-configure-worker-metrics.yml
+
 OR
 
 apis ha-kube-claster/inventory.ini ha-kube-claster/setup-ha-kube-claster.yml

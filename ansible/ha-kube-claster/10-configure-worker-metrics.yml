@@ -1,0 +1,212 @@
+---
+- name: Configure Kubelet TLS on worker nodes
+  hosts: workers
+  become: true
+  gather_facts: false
+  serial: 1
+
+  tasks:
+
+    # ============================================================
+    # 1. Find INIT_CONTROL_NODE dynamically from inventory
+    # ============================================================
+
+    - name: Find INIT_CONTROL_NODE
+      ansible.builtin.set_fact:
+        init_control_node: "{{ item }}"
+      loop: "{{ groups['control_planes'] }}"
+      when:
+        - hostvars[item].kubernetes_role | default('') == 'INIT_CONTROL_NODE'
+
+    - name: Verify INIT_CONTROL_NODE was found
+      ansible.builtin.assert:
+        that:
+          - init_control_node is defined
+          - init_control_node | length > 0
+        fail_msg: "No host with kubernetes_role=INIT_CONTROL_NODE was found."
+
+    # ============================================================
+    # 2. Enable kubelet server TLS bootstrap
+    # ============================================================
+
+    - name: Enable kubelet server TLS bootstrap
+      ansible.builtin.lineinfile:
+        path: /var/lib/kubelet/config.yaml
+        regexp: '^serverTLSBootstrap:'
+        line: 'serverTLSBootstrap: true'
+        insertafter: '^rotateCertificates:'
+      register: kubelet_config
+
+    # ============================================================
+    # 3. Restart kubelet if configuration changed
+    # ============================================================
+
+    - name: Restart kubelet
+      ansible.builtin.systemd:
+        name: kubelet
+        state: restarted
+      when: kubelet_config.changed
+
+    # ============================================================
+    # 4. Make sure kubelet is running
+    # ============================================================
+
+    - name: Ensure kubelet is running
+      ansible.builtin.systemd:
+        name: kubelet
+        state: started
+        enabled: true
+
+    # ============================================================
+    # 5. Check current kubelet serving certificate
+    # ============================================================
+
+    - name: Check current kubelet serving certificate
+      ansible.builtin.stat:
+        path: /var/lib/kubelet/pki/kubelet-server-current.pem
+      register: kubelet_server_certificate
+
+    # ============================================================
+    # 6. Check whether current certificate contains node IP
+    # ============================================================
+
+    - name: Check current certificate SAN
+      ansible.builtin.shell: |
+        openssl x509 \
+          -in /var/lib/kubelet/pki/kubelet-server-current.pem \
+          -noout \
+          -text 2>/dev/null |
+        grep -q "IP Address:{{ ansible_host }}"
+      register: certificate_has_ip
+      changed_when: false
+      failed_when: false
+      when: kubelet_server_certificate.stat.exists
+
+    # ============================================================
+    # 7. Wait for kubelet-serving CSR
+    # ============================================================
+
+    - name: Wait for kubelet-serving CSR
+      ansible.builtin.shell: |
+        kubectl get csr \
+          -o jsonpath='{range .items[?(@.spec.signerName=="kubernetes.io/kubelet-serving")]}{.metadata.name}{"|"}{.spec.username}{"|"}{.status.certificate}{"\n"}{end}' |
+        awk -F'|' '
+          $2 == "system:node:{{ inventory_hostname }}" && $3 == "" {
+            print $1
+          }
+        ' |
+        tail -n 1
+      delegate_to: "{{ init_control_node }}"
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+      register: kubelet_serving_csr
+      changed_when: false
+      retries: 30
+      delay: 5
+      until:
+        - kubelet_serving_csr.stdout | trim | length > 0
+      when:
+        - not kubelet_server_certificate.stat.exists
+          or certificate_has_ip.rc != 0
+
+    # ============================================================
+    # 8. Show CSR
+    # ============================================================
+
+    - name: Show kubelet-serving CSR
+      ansible.builtin.debug:
+        msg:
+          - "Node: {{ inventory_hostname }}"
+          - "CSR: {{ kubelet_serving_csr.stdout | trim }}"
+      when:
+        - not kubelet_server_certificate.stat.exists
+          or certificate_has_ip.rc != 0
+
+    # ============================================================
+    # 9. Approve kubelet-serving CSR
+    # ============================================================
+
+    - name: Approve kubelet-serving CSR
+      ansible.builtin.command:
+        cmd: >-
+          kubectl certificate approve
+          {{ kubelet_serving_csr.stdout | trim }}
+      delegate_to: "{{ init_control_node }}"
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+      when:
+        - not kubelet_server_certificate.stat.exists
+          or certificate_has_ip.rc != 0
+
+    # ============================================================
+    # 10. Wait until certificate is issued
+    # ============================================================
+
+    - name: Wait for kubelet-serving certificate to be issued
+      ansible.builtin.shell: |
+        kubectl get csr {{ kubelet_serving_csr.stdout | trim }} \
+          -o jsonpath='{.status.certificate}'
+      delegate_to: "{{ init_control_node }}"
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+      register: issued_certificate
+      changed_when: false
+      retries: 20
+      delay: 3
+      until:
+        - issued_certificate.stdout | trim | length > 0
+      when:
+        - not kubelet_server_certificate.stat.exists
+          or certificate_has_ip.rc != 0
+
+    # ============================================================
+    # 11. Wait for kubelet to use the new certificate
+    # ============================================================
+
+    - name: Wait for kubelet serving certificate
+      ansible.builtin.shell: |
+        openssl x509 \
+          -in /var/lib/kubelet/pki/kubelet-server-current.pem \
+          -noout \
+          -text 2>/dev/null |
+        grep -q "IP Address:{{ ansible_host }}"
+      register: certificate_ready
+      changed_when: false
+      retries: 20
+      delay: 3
+      until: certificate_ready.rc == 0
+
+    # ============================================================
+    # 12. Show certificate SAN
+    # ============================================================
+
+    - name: Show kubelet certificate SAN
+      ansible.builtin.shell: |
+        openssl x509 \
+          -in /var/lib/kubelet/pki/kubelet-server-current.pem \
+          -noout \
+          -text |
+        grep -A1 "Subject Alternative Name"
+      register: certificate_san
+      changed_when: false
+
+    - name: Display certificate SAN
+      ansible.builtin.debug:
+        msg: "{{ certificate_san.stdout }}"
+
+    # ============================================================
+    # 13. Verify Kubernetes node
+    # ============================================================
+
+    - name: Get Kubernetes node status
+      ansible.builtin.command:
+        cmd: kubectl get node {{ inventory_hostname }} -o wide
+      delegate_to: "{{ init_control_node }}"
+      environment:
+        KUBECONFIG: /etc/kubernetes/admin.conf
+      register: node_status
+      changed_when: false
+
+    - name: Show Kubernetes node status
+      ansible.builtin.debug:
+        var: node_status.stdout
