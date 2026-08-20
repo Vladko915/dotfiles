@@ -119,3 +119,12 @@ for ip in {93,94,95,96,97,98,99}; do ssh user@192.168.0.$ip 'hostname && hostnam
 ip addr
 ip -br addr
 
+/var/lib/kubelet/config.yaml
+
+for ip in {93,94,95,96,97}; do ssh user@192.168.0.$ip cat /var/lib/kubelet/config.yaml | tail && echo -e "\n"; done
+
+for ip in {93,94,95,96,97}; do
+  ssh user@192.168.0.$ip 'echo "serverTLSBootstrap: true" | sudo tee -a /var/lib/kubelet/config.yaml > /dev/null'
+done
+
+for ip in {93,94,95,96,97}; do ssh user@192.168.0.$ip 'sudo systemctl restart kubelet'; done
