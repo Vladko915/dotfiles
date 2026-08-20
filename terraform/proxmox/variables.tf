@@ -25,7 +25,7 @@ variable "vm_on_boot" {
 variable "clone_vm_id" {
   description = "VM ID used as clone template"
   type        = number
-  default     = 9001
+  default     = 9002
 }
 
 variable "clone_full" {
