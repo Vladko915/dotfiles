@@ -16,3 +16,10 @@ awk '
   /^[[:space:]]+HostName / { printf "%-20s %s\n", host, $2 }
 ' ~/.ssh/config
 }
+
+#tailscale
+if command -v tailscale >/dev/null 2>&1; then
+    ts(){ tailscale "$1"; }
+    tss(){ tailscale status; }
+    tsip(){ tailscale ip; }
+fi
